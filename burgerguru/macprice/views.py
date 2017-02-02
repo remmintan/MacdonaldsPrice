@@ -61,7 +61,7 @@ class Order:
 			self.money = 'h'
 	
 	def getRangeForMoney(self, group, size):
-		gp = Product.objects.filter(group=group, price__gte=0)
+		gp = Product.objects.filter(group=group, price__gte=0).order_by('-price')
 		if size == 1:
 			bot = gp.order_by('price')[0].price
 			top = group.average_price
@@ -72,6 +72,15 @@ class Order:
 			bot = group.average_price
 			top = gp.order_by('-price')[0].price
 		
+		#for debug -------
+		#if self.summ>50:
+			#debug = gp.filter(price__gte=bot).filter(price__lte=top).order_by('-price')
+			#log.info('Start debug... Self.summ=%d'%self.summ)
+			#log.info('Range[%d]: (%d, %d)'%(size, bot, top))
+			#for d in gp:
+				#log.info("		"+str(d))
+			#log.info('Stop debug')
+		#-----------------
 		if self.summ>=top:
 			return [bot, top]
 		elif self.summ<bot:
@@ -84,19 +93,23 @@ class Order:
 	
 	def getFromGroup(self, group):
 		size = 1 if self.money=='l' else 2 if self.money == 'm' else 3
-		size = 3
+		size = 2
+		
+		if self.summ<50:
+			size=1
+		
 		range = self.getRangeForMoney(group, size)
 		if range == -1:
 			return -1
 		products = Product.objects.filter(group=group, price__gte=range[0]).filter(price__lte=range[1])
 		if len(products) == 1:
-			log.info("[0] %s (%d %d)"%(products[0],range[0],range[1]))
+			
 			return products[0]
 		elif len(products)==0:
 			return -1
 		else:
 			prod = products[randint(0, len(products)-1)]
-			log.info("%s (%d %d)"%(prod,range[0],range[1]))
+			
 			return prod
 	
 	def getNewGroup(self, groups, rnd=-1, deepness=0):
@@ -136,12 +149,15 @@ class Order:
 # Create your views here.
 class DevView(View):
 	def get(self, request, sum):
-		l1 = Product.objects.filter(group=ProductGroup.objects.get(group_name="Напитки")).order_by('price')
+		l1 = Product.objects.filter(group=ProductGroup.objects.get(group_name="Кофе, чай")).order_by('price')
 		
 		ord = Order(sum)
-		ord.compileOrder(10)
+		ord.compileOrder(int(int(sum)*0.04))
 		products=ord.products
-		return render(request, 'macprice/index.html', { 'l1':l1, 'prodList':products, 'var':ord.count })
+		
+		
+		
+		return render(request, 'macprice/index.html', { 'l1':l1, 'prodList':products, 'var':int(sum)-int(ord.summ)})
 
 	
 		
