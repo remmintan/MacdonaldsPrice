@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+
 import urllib3
 from urllib3 import ProxyManager
 import time
@@ -207,6 +209,15 @@ class Updater:
 			print "Sucsess!"
 			
 		self.mirrorCheck()
+	
+	def setPrioty(self, priorDict):
+		for key in priorDict.keys():
+			try:
+				print "Setting up priority for: %s" % (key)
+				group = ProductGroup.objects.get(group_name=key)
+				group.priority = priorDict.get(key)
+			except ProductGroup.DoesNotExist:
+				print "For some reason can't find group for: %s" % key
 			
 
 proxyList = [
@@ -225,4 +236,14 @@ upd.parseMain()
 dwnld.downloadEachPrice()
 upd.parsePrices()
 upd.updateDjango()
-				
+
+priorDict = {
+	"Сандвичи":1,
+	"Напитки": 2,
+	"Кофе, чай": 2,
+	"Картофель": 3,
+	"Десерты":3,
+	"Салаты":3,
+	"Соусы":4
+}
+upd.setPrioty(priorDict)
