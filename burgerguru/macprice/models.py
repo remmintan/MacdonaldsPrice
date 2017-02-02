@@ -8,6 +8,7 @@ from decimal import Decimal
 class ProductGroup(models.Model):
 	group_name = models.CharField(max_length=50)
 	average_price = models.IntegerField(default = 0)
+	priority = models.IntegerField(default=10)#default rating is really low
 	
 	def __unicode__(self):
 		return self.group_name
