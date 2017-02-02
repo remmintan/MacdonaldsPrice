@@ -4,17 +4,19 @@
 		<title>Main page</title>
 	</head>
 	<body>
-		<h1>Product Groups</h1>
+		<h1>{{ l1.0.group.group_name }}</h1>
 		<ul>
-		{% for s in sumList %}
-			<li>{{ s }}</li>
+		{% for p in l1 %}
+			<li>{{ p.product_name }} {{ p.product_type }} - {{ p.price }}</li>
 		{% endfor %}
 		</ul>
 		<h1>Products</h1>
 		<ul>
 		{% for p in prodList %}
-			<li>{{ p.product_name }} - {{ p.price }}</li>
+			<li>{{ p.product_name }} {{ p.product_type }} - {{ p.price }}</li>
 		{% endfor %}
 		</ul>
+		
+		<h2>{{ var }}</h2>
 	</body>
 </html>

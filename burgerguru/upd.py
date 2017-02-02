@@ -216,6 +216,7 @@ class Updater:
 				print "Setting up priority for: %s" % (key)
 				group = ProductGroup.objects.get(group_name=key)
 				group.priority = priorDict.get(key)
+				group.save()
 			except ProductGroup.DoesNotExist:
 				print "For some reason can't find group for: %s" % key
 			
@@ -229,13 +230,20 @@ proxyList = [
 	"83.169.202.2:3128",
 	"82.146.52.210:8118"
 ]
+import sys
+
 dwnld = Downloader(proxyList)
 upd = Updater()
-dwnld.downloadMain()
-upd.parseMain()
-dwnld.downloadEachPrice()
-upd.parsePrices()
-upd.updateDjango()
+if "-load" in sys.argv:
+	dwnld.downloadMain()
+if "-upd" in sys.argv:
+	upd.parseMain()
+if "-load" in sys.argv:
+	dwnld.downloadEachPrice()
+if "-upd" in sys.argv:
+	upd.parsePrices()
+if "-upd" in sys.argv:
+	upd.updateDjango()
 
 priorDict = {
 	"Сандвичи":1,
@@ -246,4 +254,5 @@ priorDict = {
 	"Салаты":3,
 	"Соусы":4
 }
-upd.setPrioty(priorDict)
+if "-prior" in sys.argv:
+	upd.setPrioty(priorDict)

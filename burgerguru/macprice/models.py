@@ -32,4 +32,7 @@ class Product(models.Model):
 			self.save()
 	
 	def __unicode__(self):
-		return "{0} - {1}".format(self.product_name, self.price)
+		if self.product_type == "N":
+			return "{0} - {1}".format(self.product_name, self.price)
+		else:
+			return "{0} {2} - {1}".format(self.product_name, self.price, self.product_type)
