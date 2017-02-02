@@ -4,6 +4,17 @@
 		<title>Main page</title>
 	</head>
 	<body>
-		<h1>{{ sum }}</h1>
+		<h1>Product Groups</h1>
+		<ul>
+		{% for s in sumList %}
+			<li>{{ s }}</li>
+		{% endfor %}
+		</ul>
+		<h1>Products</h1>
+		<ul>
+		{% for p in prodList %}
+			<li>{{ p.product_name }} - {{ p.price }}</li>
+		{% endfor %}
+		</ul>
 	</body>
 </html>

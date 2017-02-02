@@ -7,7 +7,10 @@ from decimal import Decimal
 # Create your models here.
 class ProductGroup(models.Model):
 	group_name = models.CharField(max_length=50)
-	average_price = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal(0))
+	average_price = models.IntegerField(default = 0)
+	
+	def biggerThan(self, price):
+		return self.average_price>price
 	
 	def __unicode__(self):
 		return self.group_name
