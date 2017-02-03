@@ -36,6 +36,7 @@ class Order:
 		self.summ = float(summ)
 		self.products=[]
 		self.groups = []
+		self.prodNames = []
 		self.productsPriority = []
 		self.setAverSum()
 		self.setHowMany()
@@ -63,8 +64,8 @@ class Order:
 			bot = gp.order_by('price')[0].price
 			top = group.average_price
 		if size == 2:
-			bot = group.average_price-findDesp(group)*2/3
-			top = group.average_price+findDesp(group)*2/3
+			bot = group.average_price-findDesp(group)/2
+			top = group.average_price+findDesp(group)/2
 		if size == 3:
 			bot = group.average_price
 			top = gp.order_by('-price')[0].price
@@ -85,17 +86,24 @@ class Order:
 		if self.summ<50:
 			size=1
 		
-		range = self.getRangeForMoney(group, size)
-		if range == -1:
+		priceRange = self.getRangeForMoney(group, size)
+		if priceRange == -1:
 			return -1
-		products = Product.objects.filter(group=group, price__gte=range[0]).filter(price__lte=range[1])
+		products = Product.objects.filter(group=group, price__gte=priceRange[0]).filter(price__lte=priceRange[1])
 		if len(products) == 1:
-			
 			return products[0]
 		elif len(products)==0:
 			return -1
 		else:
-			prod = products[randint(0, len(products)-1)]
+			rnd = randint(0, len(products)-1)
+			prod = products[rnd]
+			
+			for i in range(0, len(products)):
+				if not prod.product_name in self.prodNames:
+					break
+				if rnd+i>=len(products):
+					rnd+=-len(products)
+				prod = products[rnd+i]
 			
 			return prod
 	
@@ -125,12 +133,24 @@ class Order:
 		if prod != -1:
 			self.summ+= -prod.price
 			self.products.append(prod)
+			self.prodNames.append(prod.product_name)
 			self.groups.append(group.group_name)
 			self.productsPriority.append(priority)
 			
 	def compileOrder(self, size):
 		for i in range(0, size):
 			self.addProduct()
+		
+		if self.summ>=19:
+			sousi = Product.objects.filter(group = ProductGroup.objects.filter(priority=9)[0])
+			nap = Product.objects.filter(group = ProductGroup.objects.filter(priority=2)[0])
+			for prod in self.products:
+				if prod.product_type != "N":
+					if len(Product.objects.filter(product_name=prod.product_name)) == 3 and not prod in nap:
+						self.products.append(sousi[randint(0, len(sousi)-1)])
+						self.summ += -sousi[0].price
+						if self.summ<19:
+							break
 
 
 # Create your views here.
@@ -138,11 +158,28 @@ class DevView(View):
 	def get(self, request, sum):
 		l1 = Product.objects.filter(group=ProductGroup.objects.get(group_name="Кофе, чай")).order_by('price')
 		
-		ord = Order(sum)
-		ord.compileOrder(int(int(sum)*0.04))
-		products=ord.products
+		iterations = int(int(sum)*0.04)
+		var = []
 		
-		return render(request, 'macprice/index.html', { 'l1':l1, 'prodList':products, 'var':int(sum)-int(ord.summ)})
+		ord = Order(sum)
+		ord.size = 1
+		ord.compileOrder(iterations)
+		products1=ord.products
+		var.append(int(sum)-int(ord.summ))
+		
+		ord = Order(sum)
+		ord.size = 2
+		ord.compileOrder(iterations)
+		products2=ord.products
+		var.append(int(sum)-int(ord.summ))
+		
+		ord = Order(sum)
+		ord.size = 3
+		ord.compileOrder(iterations)
+		products3=ord.products
+		var.append(int(sum)-int(ord.summ))
+		
+		return render(request, 'macprice/index.html', { 'l1':l1, 'prodList':products1, 'prodList2':products2, 'prodList3':products3, 'var':var})
 
 import telepot
 import json
@@ -171,32 +208,52 @@ def processInput(bot, message, error):
 		return;
 	
 	#input is ok. Processing sum
-	ord = Order(summ)
-	ord.compileOrder(int(int(summ)*0.04))
-	responseText = "Ваш заказ. Вариант№1:\n"
-	counter=0
-	sum = 0
-	for prod in ord.products:
-		counter+=1
-		sum+=prod.price
-		name = prod.product_name
+	if summ>10000:
+		bot.sendMessage(chat_id, "Сумму нужно указывать в Российских рублях. Кажется вы ошиблись. (Сумма снижена до 1000)")
+	elif summ>5000:
+		bot.sendMessage(chat_id, "Вау! Сколько денег! Может быть посоветовать вам ближайший ресторан? (Сумма снижена до 1000)")
+		summ = 1000
+	elif summ>1000:
+		bot.sendMessage(chat_id, "1000 рублей более чем достаточно, что бы наесться в макдоналдсе. (Сумма снижена до 1000)")
+	
+	if summ>1000:
+		summ = 1000
+	
+	responseText = ""
+	
+	for i in range(1, 4):
+		ord = Order(summ)
+		ord.size = i
+		ord.compileOrder(int(int(summ)*0.04))
+		orderText = "Ваш заказ. Вариант№%d:\n"%i
+		counter=0
+		sum = 0
+		for prod in ord.products:
+			counter+=1
+			sum+=prod.price
+			name = prod.product_name
+			
+			if prod.product_type == 'S':
+				name+=' (мал.)'
+			elif prod.product_type == 'M':
+				name+=' (станд.)'
+			elif prod.product_type == 'L':
+				name+=' (бол.)'
+			s = ("{0}){1} - {2} руб.\n".format(counter, name, prod.price)).encode('utf-8')
+			orderText+=s
+		orderText+="Итого: %d"%sum
+		responseText += orderText + "\n\n"
 		
-		if prod.product_type == 'S':
-			name+=' (мал.)'
-		elif prod.product_type == 'M':
-			name+=' (станд.)'
-		elif prod.product_type == 'L':
-			name+=' (бол.)'
-		s = ("{0}){1} - {2} руб.\n".format(counter, name, prod.price)).encode('utf-8')
-		responseText+=s
-	responseText+="Итого: %d"%sum
+	responseText+="Приятного аппетита!\n\nРазработчики бота не сотрудничают с ресторанами быстрого питания, цены взяты из открытых источников и могут быть неактуальны."
 	bot.sendMessage(chat_id, responseText)
 
 commands = {
-		"start":"Введите сумму (в рублях), которую вы готовы потратить и я подскажу вам несколько заказов, которые уложатся в эту сумму.\nК сожалению временно поддерживается только основное меню McDonalds. Мы работаем над этим.",
+		"start":"Введите сумму (в рублях), которую вы готовы потратить и я подскажу вам несколько заказов, которые уложатся в эту сумму.\nК сожалению временно поддерживается только основное меню McDonalds. Мы работаем над этим.\n\n/disclaimer - отказ от ответственности",
 		"error":"Неверный ввод, введите сумму в рублях на заказ или \"/help\"",	
 		"process":processInput,
-		
+		"help":"Справка:\nВведите сумму в рублях, которую вы готовы потратить на заказ. Вводить необходимо без указания валюты, кавычек или других символов.\nСейчас поддерживается только основное меню ресторана McDonalds, в ближайшее вермя будет добавлена поддержка меню ресторана KFC\n\n/about - О возможностях бота\n/author - Контактный адрес разработчика бота (для любых вопросов)\n/disclaimer - Отказ от ответственности\n\n\nОтказ от ответственности:\nРазработчики бота не сотрудничают с ресторанами быстрого питания. Бот является неоффициальной разработкой. Цены взяты из открытых источников, обновляются раз в неделю и могут быть неактуальны. Сервис предоставляется пользователю \"как есть\", пользователь использует сервис на свое усмотрение и понимает возможные риски использования. Разработчики не несут ответственности за возможные последствия использования.",
+		"disclaimer":"Отказ от ответственности:\nРазработчики бота не сотрудничают с ресторанами быстрого питания. Бот является неоффициальной разработкой. Цены взяты из открытых источников, обновляются раз в неделю и могут быть неактуальны. Сервис предоставляется пользователю \"как есть\", пользователь использует сервис на свое усмотрение и понимает возможные риски использования. Разработчики не несут ответственности за возможные последствия использования. Справка бота: /help ",
+		"about":"Бот поможет вам определиться с разнообразным выбором в фастфудах страны. Просто введите сумму в рублях, которую готовы потратить, и бот предложит несколько заказов, которые уложатся в эту сумму.\nПока что поддерживается только основное меню ресторана McDonalds, но бот быстро развивается.\n\n/disclaimer - отказ от ответственности",
 }
 #-----------------------------------
 

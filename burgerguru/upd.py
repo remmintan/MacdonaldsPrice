@@ -133,8 +133,7 @@ class Updater:
 							price.append(int(priceText))
 				newArray.append([link[0], price, prodType])
 				print "Sucsess! Sleep 1 sec"
-				#uncomment before deploying!
-				#time.sleep(1)
+				time.sleep(1)
 			PRODUCTS_DICTIONARY[key] = newArray
 	
 	def mirrorCheck(self):
@@ -261,7 +260,7 @@ priorDict = {
 	"Картофель": 3,
 	"Десерты":3,
 	"Салаты":3,
-	"Соусы":4
+	"Соусы":9
 }
 if "-prior" in sys.argv:
 	upd.setPrioty(priorDict)
