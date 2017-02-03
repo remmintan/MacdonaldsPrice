@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 from django.shortcuts import render
 from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 from models import ProductGroup, Product
 
@@ -26,7 +32,6 @@ def findDesp(group):
 	return summ
 
 class Order:
-	
 	def __init__(self, summ):
 		self.summ = float(summ)
 		self.products=[]
@@ -34,7 +39,7 @@ class Order:
 		self.productsPriority = []
 		self.setAverSum()
 		self.setHowMany()
-		self.amountOfMoney()
+		self.size = 2
 	
 	def setAverSum(self):
 		self.averSum = 0
@@ -52,14 +57,6 @@ class Order:
 			return
 		self.count = math.ceil(self.summ/self.averSum)
 	
-	def amountOfMoney(self):
-		if self.count<3:
-			self.money = 'l'
-		elif self.count<7:
-			self.money = 'm'
-		else:
-			self.money = 'h'
-	
 	def getRangeForMoney(self, group, size):
 		gp = Product.objects.filter(group=group, price__gte=0).order_by('-price')
 		if size == 1:
@@ -72,15 +69,6 @@ class Order:
 			bot = group.average_price
 			top = gp.order_by('-price')[0].price
 		
-		#for debug -------
-		#if self.summ>50:
-			#debug = gp.filter(price__gte=bot).filter(price__lte=top).order_by('-price')
-			#log.info('Start debug... Self.summ=%d'%self.summ)
-			#log.info('Range[%d]: (%d, %d)'%(size, bot, top))
-			#for d in gp:
-				#log.info("		"+str(d))
-			#log.info('Stop debug')
-		#-----------------
 		if self.summ>=top:
 			return [bot, top]
 		elif self.summ<bot:
@@ -92,8 +80,7 @@ class Order:
 			return [bot, self.summ]
 	
 	def getFromGroup(self, group):
-		size = 1 if self.money=='l' else 2 if self.money == 'm' else 3
-		size = 2
+		size = self.size
 		
 		if self.summ<50:
 			size=1
@@ -155,9 +142,125 @@ class DevView(View):
 		ord.compileOrder(int(int(sum)*0.04))
 		products=ord.products
 		
-		
-		
 		return render(request, 'macprice/index.html', { 'l1':l1, 'prodList':products, 'var':int(sum)-int(ord.summ)})
+
+import telepot
+import json
+from django.http import JsonResponse, HttpResponseForbidden, HttpResponseBadRequest
+
+#MacPriceBot------------------------
+def processInput(bot, message, error):
+	summ = 0
+	chat_id = message['chat']['id']
+	text = message['text']
+	arrText = text.split()
+	try:
+		for strr in arrText:
+			int(float(strr))
+	except:
+		bot.sendMessage(chat_id, "Неверный ввод. Отправьте только сумму(в рублях), которую вы готовы потратить на заказ. Также попробуйте команду: /help")
+		return
+	if len(arrText)>1:
+		bot.sendMessage(chat_id, "Вы ввели %d чисел, мне нужно только одно: сумма (в рублях) которую вы готовы потратить на заказ. Также попробуйте команду: /help" % len(arrText))
+		return
+	
+	try:
+		summ = int(float(text))
+	except:
+		bot.sendMessage(chat_id, error)
+		return;
+	
+	#input is ok. Processing sum
+	ord = Order(summ)
+	ord.compileOrder(int(int(summ)*0.04))
+	responseText = "Ваш заказ. Вариант№1:\n"
+	counter=0
+	sum = 0
+	for prod in ord.products:
+		counter+=1
+		sum+=prod.price
+		name = prod.product_name
+		
+		if prod.product_type == 'S':
+			name+=' (мал.)'
+		elif prod.product_type == 'M':
+			name+=' (станд.)'
+		elif prod.product_type == 'L':
+			name+=' (бол.)'
+		s = ("{0}){1} - {2} руб.\n".format(counter, name, prod.price)).encode('utf-8')
+		responseText+=s
+	responseText+="Итого: %d"%sum
+	bot.sendMessage(chat_id, responseText)
+
+commands = {
+		"start":"Введите сумму (в рублях), которую вы готовы потратить и я подскажу вам несколько заказов, которые уложатся в эту сумму.\nК сожалению временно поддерживается только основное меню McDonalds. Мы работаем над этим.",
+		"error":"Неверный ввод, введите сумму в рублях на заказ или \"/help\"",	
+		"process":processInput,
+		
+}
+#-----------------------------------
+
+
+
+botsDict = {}
+def addBotToDict(token, commandsDict):
+	try:
+		bot = telepot.Bot(token)
+		botsDict[token] = [bot, commandsDict]
+	except:
+		log.warning("Can't add bot to bot dictionary")
+
+addBotToDict("309603787:AAHB6uOEc9aRuQfUoYrjW_we4zF8LJIu82g", commands)
+
+class TelegramView(View):
+	
+	def processCommand(self, chat_id, text):
+		if text in self.commandsDict.keys() and text != "process":
+			tmp = self.commandsDict.get(text)
+			if isinstance(tmp, str):
+				self.activeBot.sendMessage(chat_id, tmp)
+			elif callable(tmp):
+				tmp(chat_id)
+			else:
+				self.activeBot.sendMessage(chat_id, self.commandsDict.get('error'))
+		else:
+			self.activeBot.sendMessage(chat_id, self.commandsDict.get('error') + text)
+	
+	def processRequest(self, payload):
+		msg = payload['message']
+		if 'entities' in msg.keys():
+			ents = msg['entities']
+			if ents[0]['type'] == 'bot_command':
+				self.processCommand(msg['chat']['id'], msg['text'][1:])
+				return
+		
+		self.commandsDict.get("process")(self.activeBot, msg, self.commandsDict.get("error"))
+	
+	def post(self, request, token):
+		
+		if not (token in botsDict.keys()):
+			return HttpResponseForbidden('Invalid bot token')
+		self.activeBot = botsDict.get(token)[0]
+		self.commandsDict = botsDict.get(token)[1]
+		raw = request.body.decode('utf-8')
+		
+		try:
+			payload = json.loads(raw)
+		except ValueError:
+			return HttpResponseBadRequest('Invalid request body')
+		else:
+			try:
+				self.processRequest(payload)
+			except KeyError:
+				return HttpResponseBadRequest('KeyError in body')
+		
+		response = JsonResponse({})
+		response.status_code = 200
+		return response
+	
+	@method_decorator(csrf_exempt)
+	def dispatch(self, request, *args, **kwargs):
+		return super(TelegramView, self).dispatch(request, *args, **kwargs)
 
 	
 		
