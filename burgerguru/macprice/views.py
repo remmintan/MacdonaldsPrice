@@ -295,7 +295,6 @@ class TelegramView(View):
 		self.commandsDict.get("process")(self.activeBot, msg, self.commandsDict.get("error"))
 	
 	def post(self, request, token):
-		
 		if not (token in botsDict.keys()):
 			return HttpResponseForbidden('Invalid bot token')
 		self.activeBot = botsDict.get(token)[0]
