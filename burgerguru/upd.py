@@ -132,9 +132,19 @@ class Updater:
 						else:
 							price.append(int(priceText))
 				newArray.append([link[0], price, prodType])
-				print "Sucsess! Sleep 1 sec"
-				time.sleep(1)
+				#time.sleep(1)
 			PRODUCTS_DICTIONARY[key] = newArray
+		
+		print "Start govnocode section:"
+		deserts = []
+		for spec in PRODUCTS_DICTIONARY.get(u'Десерты'):
+			if u'Молочный' in spec[0]:
+				deserts.append(spec)
+				
+		for spec in deserts:
+			PRODUCTS_DICTIONARY.get(u'Десерты').remove(spec)
+			PRODUCTS_DICTIONARY.get(u'Напитки').append(spec)
+		
 	
 	def mirrorCheck(self):
 		print "Starting mirror check..."
