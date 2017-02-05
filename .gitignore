@@ -37,3 +37,6 @@ ehthumbs.db
 Thumbs.db
 *.pyc
 env/*
+burgerguru/static/*
+burgerguru/burgerguru/gunicorn.conf.py
+burgerguru/burgerguru/settings.py

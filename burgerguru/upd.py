@@ -37,7 +37,7 @@ class Downloader:
 			if tries>2:
 				print "To many tries, updating proxy..."
 				self.updateProxy()
-				r = tryDownload(url)
+				r = self.tryDownload(url)
 			else:
 				print "Error while downloading from \'%s\'. Trying again in 3 secs... [%d]" % (url, tries+1) 
 				time.sleep(3)
@@ -48,7 +48,7 @@ class Downloader:
 		self.__proxyCounter += 1
 		if self.__proxyCounter >= len(proxyList):
 			self.__proxyCounter = 0
-		self.__http = ProxyManager(self.__proxyList[self.__proxyCounter])
+		self.__http = ProxyManager("http://"+self.__proxyList[self.__proxyCounter])
 	
 	def downloadParseToFile(self, url, fileAdress, tries=0):
 		print "Start downloading from: '%s'" % (url)

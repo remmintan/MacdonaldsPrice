@@ -244,7 +244,7 @@ def processInput(bot, message, error):
 		orderText+="Итого: %d"%sum
 		responseText += orderText + "\n\n"
 		
-	responseText+="Приятного аппетита!\n\nРазработчик бота не сотрудничает с ресторанами быстрого питания, цены взяты из открытых источников и могут быть неактуальны."
+	responseText+="Приятного аппетита!"
 	bot.sendMessage(chat_id, responseText)
 
 commands = {
@@ -295,7 +295,6 @@ class TelegramView(View):
 		self.commandsDict.get("process")(self.activeBot, msg, self.commandsDict.get("error"))
 	
 	def post(self, request, token):
-		
 		if not (token in botsDict.keys()):
 			return HttpResponseForbidden('Invalid bot token')
 		self.activeBot = botsDict.get(token)[0]
