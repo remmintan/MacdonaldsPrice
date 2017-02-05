@@ -244,7 +244,7 @@ def processInput(bot, message, error):
 		orderText+="Итого: %d"%sum
 		responseText += orderText + "\n\n"
 		
-	responseText+="Приятного аппетита!\n\nРазработчик бота не сотрудничает с ресторанами быстрого питания, цены взяты из открытых источников и могут быть неактуальны."
+	responseText+="Приятного аппетита!"
 	bot.sendMessage(chat_id, responseText)
 
 commands = {
