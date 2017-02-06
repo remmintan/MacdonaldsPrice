@@ -36,3 +36,29 @@ class Product(models.Model):
 			return "{0} - {1}".format(self.product_name, self.price)
 		else:
 			return "{0} {2} - {1}".format(self.product_name, self.price, self.product_type)
+
+class User(models.Model):
+	name = models.CharField(max_length=50)
+	surname = models.CharField(max_length=50)
+	
+	def update(self, name, surname):
+		if self.name != name:
+			self.name = name;
+			self.save()
+		if self.surname != surname:
+			self.surname = surname;
+			self.save()
+	
+	def __unicode__(self):
+		return "%s %s - %i" % (self.name, self.surname, self.pk)
+	
+class Chat(models.Model):
+	chatType = models.CharField(max_length=10)
+	requests = models.IntegerField(default=0)
+	
+	def __unicode__(self):
+		if self.chatType == "private":
+			user = User.objects.filter(pk = self.pk)[0]
+			return "%s %s - %i" % (user.name, user.surname, self.requests)
+		else:
+			return "%i (%s) - %i" % (self.pk, self.chatType, self.requests)

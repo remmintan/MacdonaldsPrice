@@ -5,6 +5,8 @@ import controllers
 
 import logging
 
+from models import User, Chat
+
 class FFPriceBot:
 	
 	def __init__(self, token):
@@ -49,9 +51,32 @@ class FFPriceBot:
 		self.sendMessage(errorText)
 		
 	
+	def updateUser(self):
+		username = self.__msg['from']['first_name']
+		usersurname = self.__msg['from']['last_name']
+		
+		if not User.objects.filter(pk=self.__user_id).exists():
+			user = User(id=self.__user_id, name=username,surname=usersurname)
+			user.save()
+		else:
+			user = User.objects.filter(pk=self.__user_id)[0]
+			user.update(username, usersurname)
+		
+	def addChat(self):
+		chat_type = self.__msg['chat']['type']
+		
+		chat = Chat(id=self.__chat_id, chatType = chat_type)
+		chat.save()
+	
 	def processRequest(self, payload):
 		self.__msg = payload['message']
 		self.__chat_id = self.__msg['chat']['id']
+		self.__user_id = self.__msg['from']['id']
+		
+		self.updateUser()
+			
+		if not Chat.objects.filter(pk=self.__chat_id).exists():
+			self.addChat()
 		
 		if 'entities' in self.__msg.keys():
 			if self.__msg['entities'][0]['type'] == 'bot_command':
@@ -95,10 +120,14 @@ class FFPriceBot:
 			return;
 		
 		#input is ok. Processing order
+		if Chat.objects.filter(pk=self.__chat_id).exists():
+			chat = Chat.objects.filter(pk=self.__chat_id)[0]
+			chat.requests += 1
+			chat.save()
+
 		self.processOrder(summ)
 		
 	def processOrder(self, summ):
-		self.log.info("I'm here!")
 		if summ>10000:
 			self.sendMessage(self._info['mt1000'])
 		elif summ>5000:
