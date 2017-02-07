@@ -16,6 +16,13 @@ class ProductGroup(models.Model):
 	def __unicode__(self):
 		return self.group_name
 
+class Resturant(models.Model):
+	short_name = models.CharField(max_length=3)
+	long_name = models.CharField(max_length=30)
+	
+	def __unicode__(self):
+		return self.long_name
+
 class Product(models.Model):
 	product_name = models.CharField(max_length=50)
 	price = models.IntegerField()
@@ -27,6 +34,8 @@ class Product(models.Model):
 		('L', 'Large')
 	]
 	product_type = models.CharField(max_length = 1, choices=TYPE_CHOICES, default="N")
+	resturant = models.ForeignKey(Resturant, default=None)
+	
 	
 	#TODO: Add calories!
 	
