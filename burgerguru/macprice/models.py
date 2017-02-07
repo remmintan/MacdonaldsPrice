@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+
 from __future__ import unicode_literals
 
 from django.db import models
@@ -26,6 +28,8 @@ class Product(models.Model):
 	]
 	product_type = models.CharField(max_length = 1, choices=TYPE_CHOICES, default="N")
 	
+	#TODO: Add calories!
+	
 	def update(self, price):
 		if self.price != price:
 			self.price = price
@@ -40,6 +44,11 @@ class Product(models.Model):
 class User(models.Model):
 	name = models.CharField(max_length=50)
 	surname = models.CharField(max_length=50)
+	RESTURANT_CHOICES = [
+		('mac', u'Макдональдс'),
+	]
+	resturant = models.CharField(max_length=3, choices = RESTURANT_CHOICES, default="mac")
+	haveChosen = models.BooleanField(default=False)
 	
 	def update(self, name, surname):
 		if self.name != name:

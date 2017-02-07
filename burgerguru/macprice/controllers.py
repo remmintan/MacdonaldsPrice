@@ -3,7 +3,7 @@
 from random import randint
 from random import random
 import math
-from models import ProductGroup, Product
+from models import ProductGroup, Product, User
 
 types = {
 			"N":u"",
@@ -18,7 +18,7 @@ def createOrder(summ):
 		ord = Order(summ)
 		ord.size = i
 		ord.compileOrder(int(int(summ)*0.04))
-		orderText = u"Ваш заказ. Вариант№%d:\n"%i
+		orderText = u"*Ваш заказ. Вариант№%d:*\n"%i
 		counter=0
 		sum = 0
 		for prod in ord.products:
@@ -169,3 +169,9 @@ class Order:
 		summ = math.sqrt(summ)
 		
 		return summ
+
+def createDictResturants():
+	diction = {}
+	for part in User.RESTURANT_CHOICES:
+		diction[part[1]] = part[0]
+	return diction
