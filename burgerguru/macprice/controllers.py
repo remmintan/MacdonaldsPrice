@@ -42,10 +42,11 @@ class Order:
 		self.groups = []
 		self.prodNames = []
 		self.productsPriority = []
+		self.rest = resturant
 		self.setAverSum()
 		self.setHowMany()
 		self.size = 2
-		self.rest = resturant
+		
 	
 	def setAverSum(self):
 		self.averSum = 0
