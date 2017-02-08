@@ -187,11 +187,11 @@ class FFPriceBot:
 
 	def processOrder(self, summ):
 		if summ>10000:
-			self.sendMessage(self._info['mt1000'])
+			self.sendMessage(self.__info['mt10000'])
 		elif summ>5000:
-			self.sendMessage(self._info['mt1000'])
+			self.sendMessage(self.__info['mt5000'])
 		elif summ>1000:
-			self.sendMessage(self._info['mt1000'])
+			self.sendMessage(self.__info['mt1000'])
 		
 		if summ>1000:
 			summ = 1000
