@@ -39,9 +39,14 @@ class Product(models.Model):
 	
 	#TODO: Add calories!
 	
-	def update(self, price):
+	def update(self, price, restName):
 		if self.price != price:
 			self.price = price
+			self.save()
+		
+		rest = Resturant.objects.filter(short_name = restName)[0]
+		if self.resturant != rest:
+			self.resturant = rest
 			self.save()
 	
 	def __unicode__(self):

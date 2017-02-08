@@ -18,5 +18,6 @@ def updateResturant(long_name, short_name):
 			rest.long_name = long_name
 			rest.save()
 
-updateResturant("Macdonalds", "mac")
-updateResturant("KFC", "kfc")
+def updateAll():
+	updateResturant(u"Макдональдс", "mac")
+	updateResturant("KFC", "kfc")

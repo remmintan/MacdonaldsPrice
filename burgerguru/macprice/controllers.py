@@ -3,7 +3,7 @@
 from random import randint
 from random import random
 import math
-from models import ProductGroup, Product, User
+from models import ProductGroup, Product, User, Resturant
 
 types = {
 			"N":u"",
@@ -12,10 +12,10 @@ types = {
 			"L":u" (бол.)",
 		}
 
-def createOrder(summ):
+def createOrder(summ, restName):
 	responseText = ""
 	for i in range(1, 4):
-		ord = Order(summ)
+		ord = Order(summ, Resturant.objects.filter(short_name=restName)[0])
 		ord.size = i
 		ord.compileOrder(int(int(summ)*0.04))
 		orderText = u"*Ваш заказ. Вариант№%d:*\n"%i
@@ -36,7 +36,7 @@ def createOrder(summ):
 
 
 class Order:
-	def __init__(self, summ):
+	def __init__(self, summ, resturant):
 		self.summ = float(summ)
 		self.products=[]
 		self.groups = []
@@ -45,6 +45,7 @@ class Order:
 		self.setAverSum()
 		self.setHowMany()
 		self.size = 2
+		self.rest = resturant
 	
 	def setAverSum(self):
 		self.averSum = 0
@@ -52,7 +53,7 @@ class Order:
 		for group in ProductGroup.objects.all():
 			if group.group_name == u"Соусы":
 				continue
-			groupLen = len(Product.objects.filter(group=group))
+			groupLen = len(Product.objects.filter(group=group, resturant=self.rest))
 			self.averSum+=group.average_price*groupLen
 			prodCount += groupLen
 		self.averSum /= prodCount
@@ -63,7 +64,7 @@ class Order:
 		self.count = math.ceil(self.summ/self.averSum)
 	
 	def getRangeForMoney(self, group, size):
-		gp = Product.objects.filter(group=group, price__gte=0).order_by('-price')
+		gp = Product.objects.filter(group=group, price__gte=0, resturant=self.rest).order_by('-price')
 		if size == 1:
 			bot = gp.order_by('price')[0].price
 			top = group.average_price
@@ -93,7 +94,7 @@ class Order:
 		priceRange = self.getRangeForMoney(group, size)
 		if priceRange == -1:
 			return -1
-		products = Product.objects.filter(group=group, price__gte=priceRange[0]).filter(price__lte=priceRange[1])
+		products = Product.objects.filter(group=group, price__gte=priceRange[0], resturant=self.rest).filter(price__lte=priceRange[1])
 		if len(products) == 1:
 			return products[0]
 		elif len(products)==0:
@@ -146,18 +147,18 @@ class Order:
 			self.addProduct()
 		
 		if self.summ>=19:
-			sousi = Product.objects.filter(group = ProductGroup.objects.filter(priority=9)[0])
-			nap = Product.objects.filter(group = ProductGroup.objects.filter(priority=2)[0])
+			sousi = Product.objects.filter(group = ProductGroup.objects.filter(priority=9)[0], resturant=self.rest)
+			nap = Product.objects.filter(group = ProductGroup.objects.filter(priority=2)[0], resturant=self.rest)
 			for prod in self.products:
 				if prod.product_type != "N":
-					if len(Product.objects.filter(product_name=prod.product_name)) == 3 and not prod in nap:
+					if len(Product.objects.filter(product_name=prod.product_name, resturant=self.rest)) == 3 and not prod in nap:
 						self.products.append(sousi[randint(0, len(sousi)-1)])
 						self.summ += -sousi[0].price
 						if self.summ<19:
 							break
 							
 	def findDesp(self, group):
-		products = Product.objects.filter(group=group)
+		products = Product.objects.filter(group=group, resturant=self.rest)
 		summ = 0
 		colProds = len(products)
 		for product in products:

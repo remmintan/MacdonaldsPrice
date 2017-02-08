@@ -53,7 +53,6 @@ class FFPriceBot:
 		self.sendMessage(message, self.getKeyboard(self.__resturants.keys()))
 	
 	def helpM(self):
-		
 		helpArray = ["Справка:"
 			"Введите сумму в рублях, которую вы готовы потратить на заказ. Сумму необходимо вводить без указания валюты, кавычек или других символов. Если была введена сумма более 1000 рублей, она будет автоматически понижена ботом до 1000 рублей. Тратить более тысячи рублей на человека в ресторанах быстрого питания как минимум странно.\nСейчас поддерживается только основное меню ресторана McDonalds, в ближайшее вермя будет добавлена поддержка меню ресторана KFC\n",
 			"/about - О возможностях бота",
@@ -197,6 +196,6 @@ class FFPriceBot:
 		if summ>1000:
 			summ = 1000
 		
-		orderText = controllers.createOrder(summ)
+		orderText = controllers.createOrder(summ, self.__user.resturant)
 		self.sendMessage(orderText)
 
