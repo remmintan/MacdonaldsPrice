@@ -103,7 +103,7 @@ class FFPriceBot:
 		
 		if not User.objects.filter(pk=self.__user_id).exists():
 			self.__user = User(id=self.__user_id, name=username,surname=usersurname)
-			user.save()
+			self.__user.save()
 		else:
 			self.__user = User.objects.filter(pk=self.__user_id)[0]
 			self.__user.update(username, usersurname)
