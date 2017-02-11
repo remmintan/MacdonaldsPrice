@@ -42,38 +42,48 @@ class Updater:
 				f = open(fileAdress, 'r')
 				soup = BS(f.read(), 'html5lib')
 				f.close()
-				priceList = soup.find_all('h4', {'class':'product__show-price'});
-				prodType = "singular"
-				if len(priceList) == 1:
-					p = priceList[0].text.strip().split(' ')[0]
-					if p == "":
-						price = [-1]
-					else:
-						price = [int(p)]
-				elif len(priceList) == 0:
-					price = [-1]
-				else:
-					price = []
-					prodType = "plural"
-					for p in priceList:
-						priceText = p.text.strip().split(' ')[0]
-						if priceText == "":
-							price. append(-1)
-						else:
-							price.append(int(priceText))
-				newArray.append([link[0], price, prodType])
+				prices = self.getPrices(soup)
+				ccals = self.getCcals(soup)
+				newArray.append([link[0], prices[0], prices[1], ccals])
 			self.products[key] = newArray
 		
-		print "Start govnocode section:"
-		deserts = []
-		for spec in self.products.get(u'Десерты'):
-			if u'Молочный' in spec[0]:
-				deserts.append(spec)
-				
-		for spec in deserts:
-			self.products.get(u'Десерты').remove(spec)
-			self.products.get(u'Напитки').append(spec)
+		#код только для мака, у них почему-то Молочные коктейли в дессертах оказались. Все захардкожено, и это не хорошо.
+		if self.curRest == "mac":
+			print "Start govnocode section:"
+			deserts = []
+			for spec in self.products.get(u'Десерты'):
+				if u'Молочный' in spec[0]:
+					deserts.append(spec)
+					
+			for spec in deserts:
+				self.products.get(u'Десерты').remove(spec)
+				self.products.get(u'Напитки').append(spec)
 		
+	def getPrices(self, soup):
+		priceList = soup.find_all('h4', {'class':'product__show-price'});
+		prodType = "singular" if len(priceList) == 1 else "plural"
+		priceArr = []
+		for p in priceList:
+			priceText = p.text.strip().split(' ')[0]
+			if priceText == "":
+				priceArr.append(-1)
+			else:
+				priceArr.append(int(priceText))
+					
+		return (priceArr, prodType)
+	
+	def getCcals(self, soup):
+		tabsContent = soup.find_all('div', {'class':'product__show-composition'})[0].findChildren('div', {'class': 'tabs__content'})[0]
+		ccalList = tabsContent.findChildren('div', {'class': 'tab'})
+		ccalArr = []
+		for ccal in ccalList:
+			text = ccal.findChildren('tr')[2].findChildren('span')[0].text.strip()
+			if text == "":
+				ccalArr.append(0)
+			else:
+				ccalArr.append(int(float(text)))
+		print ccalArr
+		return ccalArr
 	
 	def mirrorCheck(self):
 		print "Starting mirror check..."
@@ -93,9 +103,9 @@ class Updater:
 	def updatePlural(self, pg, pType, i, prod):
 		if Product.objects.filter(product_name = prod[0], group = pg, product_type=pType).exists():
 			p = Product.objects.filter(product_name = prod[0], group = pg, product_type=pType)[0]
-			p.update(prod[1][i], self.curRest)
+			p.update(prod[1][i], self.curRest, prod[3][i])
 		else:
-			p = Product(product_name=prod[0], group = pg, price=prod[1][i], product_type=pType, resturant = Resturant.objects.filter(short_name=self.curRest)[0])
+			p = Product(product_name=prod[0], group = pg, price=prod[1][i], product_type=pType, resturant = Resturant.objects.filter(short_name=self.curRest)[0], ccal = prod[3][i])
 			p.save()
 	
 	def updateDjango(self):
@@ -117,9 +127,9 @@ class Updater:
 				if prod[2] == "singular":
 					if Product.objects.filter(product_name = prod[0], group = pg).exists():
 						p = Product.objects.filter(product_name = prod[0], group = pg)[0]
-						p.update(prod[1][0], self.curRest)
+						p.update(prod[1][0], self.curRest, prod[3][0])
 					else:
-						p = Product(product_name=prod[0], group = pg, price=prod[1][0], resturant = Resturant.objects.filter(short_name=self.curRest)[0])
+						p = Product(product_name=prod[0], group = pg, price=prod[1][0], resturant = Resturant.objects.filter(short_name=self.curRest)[0], ccal = prod[3][0])
 						p.save()
 					
 					if prod[1][0] != -1:
@@ -130,12 +140,12 @@ class Updater:
 				else:
 					#govnokod
 					self.updatePlural(pg, "S", 0, prod)
-					
 					if len(prod[1])>1:
 						self.updatePlural(pg, "M", 1, prod)
-						
 					if len(prod[1])>2:
 						self.updatePlural(pg, "L", 2, prod)
+					if len(prod[1])>3:
+						self.updatePlural(pg, "X", 3, prod)
 						
 					
 					if prod[1][0]!=-1:

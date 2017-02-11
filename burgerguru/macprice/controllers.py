@@ -10,6 +10,7 @@ types = {
 			"S":u" (мал.)",
 			"M":u" (станд.)",
 			"L":u" (бол.)",
+			"X":u" (оч.бол.)",
 		}
 
 def createOrder(summ, restName):
@@ -20,15 +21,18 @@ def createOrder(summ, restName):
 		ord.compileOrder(int(int(summ)*0.04))
 		orderText = u"*Ваш заказ. Вариант№%d:*\n"%i
 		counter=0
-		sum = 0
+		priceSum = 0
+		ccalSum = 0
 		for prod in ord.products:
 			counter+=1
-			sum+=prod.price
+			priceSum+=prod.price
+			ccalSum += prod.ccal
 			name = prod.product_name
 			name+=types[prod.product_type]
-			s = u"{0}){1} - {2} руб.\n".format(counter, name, prod.price)
+			s = u"{0}){1} - {2} руб. ({3} ккал.)\n".format(counter, name, prod.price, prod.ccal)
 			orderText+=s
-		orderText+=u"Итого: %d"%sum
+		orderText += u"*Калорийность: %i ккал.*\n" % ccalSum
+		orderText+=u"*Итого: %i руб.*"%priceSum
 		responseText += orderText + "\n\n"
 		
 	responseText+=u"Приятного аппетита!"

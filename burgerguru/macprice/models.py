@@ -26,6 +26,7 @@ class Resturant(models.Model):
 class Product(models.Model):
 	product_name = models.CharField(max_length=50)
 	price = models.IntegerField()
+	ccal = models.IntegerField(default = 0)
 	group = models.ForeignKey(ProductGroup)
 	TYPE_CHOICES = [
 		('N', 'Singular'),
@@ -36,24 +37,18 @@ class Product(models.Model):
 	product_type = models.CharField(max_length = 1, choices=TYPE_CHOICES, default="N")
 	resturant = models.ForeignKey(Resturant, default=None)
 	
-	
-	#TODO: Add calories!
-	
-	def update(self, price, restName):
-		if self.price != price:
-			self.price = price
-			self.save()
-		
+	def update(self, price, restName, ccals):
+		self.price = price
 		rest = Resturant.objects.filter(short_name = restName)[0]
-		if self.resturant != rest:
-			self.resturant = rest
-			self.save()
+		self.resturant = rest
+		self.ccal = ccals
+		self.save()
 	
 	def __unicode__(self):
 		if self.product_type == "N":
-			return "{0} - {1}".format(self.product_name, self.price)
+			return "{0} - {1} ({2})".format(self.product_name, self.price, self.ccal)
 		else:
-			return "{0} {2} - {1}".format(self.product_name, self.price, self.product_type)
+			return "{0} {2} - {1} ({3})".format(self.product_name, self.price, self.product_type, self.ccal)
 
 class User(models.Model):
 	name = models.CharField(max_length=50)
