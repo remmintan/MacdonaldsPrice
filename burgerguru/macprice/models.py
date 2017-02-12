@@ -58,6 +58,7 @@ class User(models.Model):
 	]
 	resturant = models.CharField(max_length=3, choices = RESTURANT_CHOICES, default="mac")
 	haveChosen = models.BooleanField(default=False)
+	lastSum = models.IntegerField(default = 0)
 	
 	def update(self, name, surname):
 		if self.name != name:

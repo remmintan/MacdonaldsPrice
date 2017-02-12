@@ -30,7 +30,8 @@ class FFPriceBot:
 			"baseend":"\nСправка: /help",
 			"notanumber":"Отправьте только сумму(в рублях), которую вы готовы потратить на заказ.",
 			"toomany":"Вы ввели несколько чисел, мне нужно только одно: сумма (в рублях) которую вы готовы потратить на заказ.",
-			"notenoughmoney":"Вы ввели очень маленькую сумму, на нее невозможно составить полноценный заказ. Минимальаня сумма: 50 руб.",
+			"notenoughmoney":"Вы ввели очень маленькую сумму, на нее невозможно составить полноценный заказ. Минимальная сумма: 50 руб.",
+			"firstorder":"У вас еще не было ни одного заказа, сделайте свой первый заказ, отправив боту сумму, которую вы готовы потратить на заказ.",
 		}
 		
 		self.__info = {
@@ -42,9 +43,20 @@ class FFPriceBot:
 		
 		self.__textCommands = {
 			u"Выбрать другой ресторан":self.changeResturan,
+			u"Повторить заказ":self.repeatOrder,
 		}
 		
 		self.__resturants = controllers.createDictResturants()
+		
+	
+	def repeatOrder(self):
+		if self.__user.lastSum == 0:
+			self.sendError("firstorder")
+		else:
+			ls = self.__user.lastSum
+			orderText = u"Повторяю заказ на сумму %d руб.\n\n"%ls
+			orderText += controllers.createOrder(ls, self.__user.resturant)
+			self.sendMessage(orderText, self.getKeyboard([u"Повторить заказ", u"Выбрать другой ресторан"]))
 		
 	
 	def changeResturan(self):
@@ -56,7 +68,10 @@ class FFPriceBot:
 	
 	def helpM(self):
 		helpArray = ["*Справка:*\n"
-			"Введите сумму в рублях, которую вы готовы потратить на заказ. Сумму необходимо вводить без указания валюты, кавычек или других символов. Например: Если вы хотите, что бы бот предложил зказазы, уложившись в 350 рублей, вам надо отправить боту просто число 350.\nЕсли была введена сумма более 1000 рублей, она будет автоматически понижена ботом до 1000 рублей.\nСейчас поддерживается только основное меню ресторана McDonalds, в ближайшее вермя будет добавлена поддержка меню ресторана KFC\n",
+			"Введите сумму в рублях, которую вы готовы потратить на заказ. Сумму необходимо вводить без указания валюты, кавычек или других символов. Например: Если вы хотите, что бы бот предложил зказазы, уложившись в 350 рублей, вам надо отправить боту просто число 350.",
+			"Если была введена сумма более 1000 рублей, она будет автоматически понижена ботом до 1000 рублей.",
+			"Сейчас поддерживается только основное меню ресторана McDonalds, в ближайшее вермя будет добавлена поддержка меню ресторана KFC.",
+			"Кнопка \"Повторить заказ\" формирует заказы на сумму последнего уже обработанного заказа.\n",
 			"/about - О возможностях бота",
 			"/otherff - Выбрать другой ресторан",
 			"/donate - Поддержать развитие бота",
@@ -71,7 +86,7 @@ class FFPriceBot:
 		for button in btnsArr:
 			keyboardButtons.append([KeyboardButton(text=button)])	
 		self.log.info(keyboardButtons)		
-		keyboard = ReplyKeyboardMarkup(keyboard = keyboardButtons,resize_keyboard=True, one_time_keyboard=True)
+		keyboard = ReplyKeyboardMarkup(keyboard = keyboardButtons,resize_keyboard=True)
 		return keyboard
 	
 	def start(self):
@@ -203,6 +218,9 @@ class FFPriceBot:
 		if summ>1000:
 			summ = 1000
 		
+		self.__user.lastSum = summ
+		self.__user.save()
+		
 		orderText = controllers.createOrder(summ, self.__user.resturant)
-		self.sendMessage(orderText)
+		self.sendMessage(orderText, self.getKeyboard([u"Повторить заказ", u"Выбрать другой ресторан"]))
 

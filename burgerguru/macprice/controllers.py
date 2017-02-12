@@ -15,11 +15,23 @@ types = {
 
 def createOrder(summ, restName):
 	responseText = ""
+	prodCheckArray = []
+	orderCounter = 0;
+	attempts = 0
 	for i in range(1, 4):
 		ord = Order(summ, Resturant.objects.filter(short_name=restName)[0])
 		ord.size = i
 		ord.compileOrder(int(int(summ)*0.04))
-		orderText = u"*Ваш заказ. Вариант№%d:*\n"%i
+		if ord.products in prodCheckArray:
+			i -= 1
+			attempts += 1
+			if attempts > 6:
+				break;
+			continue;
+		else:
+			orderCounter+=1
+			
+		orderText = u"*Ваш заказ. Вариант№%d:*\n"%orderCounter
 		counter=0
 		priceSum = 0
 		ccalSum = 0
@@ -34,6 +46,7 @@ def createOrder(summ, restName):
 		orderText += u"*Калорийность: %i ккал.*\n" % ccalSum
 		orderText+=u"*Итого: %i руб.*"%priceSum
 		responseText += orderText + "\n\n"
+		prodCheckArray.append(ord.products)
 		
 	responseText+=u"Приятного аппетита!"
 	return responseText;
