@@ -30,6 +30,7 @@ class FFPriceBot:
 			"baseend":"\nСправка: /help",
 			"notanumber":"Отправьте только сумму(в рублях), которую вы готовы потратить на заказ.",
 			"toomany":"Вы ввели несколько чисел, мне нужно только одно: сумма (в рублях) которую вы готовы потратить на заказ.",
+			"notenoughmoney":"Вы ввели очень маленькую сумму, на нее невозможно составить полноценный заказ. Минимальаня сумма: 50 руб.",
 		}
 		
 		self.__info = {
@@ -188,6 +189,10 @@ class FFPriceBot:
 		self.processOrder(summ)
 
 	def processOrder(self, summ):
+		if summ < 50:
+			self.sendError('notenoughmoney')
+			return
+		
 		if summ>10000:
 			self.sendMessage(self.__info['mt10000'])
 		elif summ>5000:
