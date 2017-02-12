@@ -29,7 +29,7 @@ def createOrder(summ, restName):
 			ccalSum += prod.ccal
 			name = prod.product_name
 			name+=types[prod.product_type]
-			s = u"{0}){1} - {2} руб. ({3} ккал.)\n".format(counter, name, prod.price, prod.ccal)
+			s = u"{0}){1}: {2}руб.{3}ккал.\n".format(counter, name, prod.price, prod.ccal)
 			orderText+=s
 		orderText += u"*Калорийность: %i ккал.*\n" % ccalSum
 		orderText+=u"*Итого: %i руб.*"%priceSum
