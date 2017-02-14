@@ -1,3 +1,4 @@
+import sys
 import urllib3
 from urllib3 import ProxyManager
 import time
@@ -5,15 +6,13 @@ from bs4 import BeautifulSoup as BS
 
 urllib3.disable_warnings()
 
-class Downloader:
-	siteName = 'mcdonalds.ru'
-	folder = "updaterdata"
-	
+class Downloader:	
 	def __init__(self, proxyList):
 		self.__proxyCounter = 0
 		self.__proxyList = proxyList
 		self.__http = ProxyManager("http://"+self.__proxyList[self.__proxyCounter])
-		
+		reload(sys)
+		sys.setdefaultencoding('utf-8')
 		
 		
 	def tryDownload(self, url, tries=0):
@@ -36,16 +35,14 @@ class Downloader:
 			self.__proxyCounter = 0
 		self.__http = ProxyManager("http://"+self.__proxyList[self.__proxyCounter])
 	
-	def downloadParseToFile(self, url, fileAdress, tries=0):
+	def downloadToFile(self, url, fileAdress, tries=0):
 		print "Start downloading from: '%s'" % (url)
 		r = self.tryDownload(url)
 		if r.status == 200:
-			print "Downloaded. Parsing and saving to '%s'" % (fileAdress)
-			soup = BS(r.data, 'html5lib')
+			print "Downloaded. Saving to '%s'" % (fileAdress)
 			f = open(fileAdress, 'w')
-			f.write(soup.prettify().encode('utf-8', 'ignore'))
+			f.write(r.data)
 			f.close()
-			print "Sucsess!"
 		elif r.status//100 == 5:
 			print "Something wrong with server (%s). Waiting 2 secs and trying again... [%d]" % (r.status, tries+1)
 			time.sleep(2)
@@ -56,18 +53,38 @@ class Downloader:
 				return -1
 		else:
 			print "Wrong response status: %d" % (r.status)
+
+proxyList = [
+	"95.31.29.209:3128",
+	"77.50.220.92:8080",
+	"91.217.42.2:8080",
+	"62.122.100.90:8080",
+	"62.165.42.170:8080",
+	"83.169.202.2:3128",
+	"82.146.52.210:8118"
+]
+
+dwnld = Downloader(proxyList)
+
+class MacDownloader:
+	siteName = "mcdonalds.ru"
+	folder = "macdata"
 	
 	def downloadMain(self):
-		if self.downloadParseToFile("http://"+self.siteName+"/products", self.folder+'/main.html', 'w')==-1:
-			print "Aborting..." #?!
-			sys.exit()
+		url = "http://"+self.siteName+"/products"
+		fileAdress = self.folder+"/main.html"
+		dwnld.downloadToFile(url, fileAdress)
 	
-	def downloadEachPrice(self, products):
-		for key in products.keys():
-			for link in products.get(key):
+	def downloadPrices(self, arr):
+		for key in arr.keys():
+			for link in arr.get(key):
 				url = "http://%s%s" % (self.siteName, link[1])
 				fileAdress = self.folder+link[1]+".html"
-				if self.downloadParseToFile(url, fileAdress) == -1:
+				if dwnld.downloadToFile(url, fileAdress) == -1:
 					print "Aborting..."
 					sys.exit()
 				time.sleep(1)
+
+class KfcDownloader:
+	siteName = "www.kfc.ru"
+	folderName = "kfcdata"

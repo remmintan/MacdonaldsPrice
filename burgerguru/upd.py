@@ -3,28 +3,22 @@
 import sys
 import os
 
-from updater.loader import Downloader
-from updater.parser import Updater
+from updater.loader import Downloader, MacDownloader
+from updater.parser import MacParser
 from updater import resturants
 
-proxyList = [
-	"95.31.29.209:3128",
-	"77.50.220.92:8080",
-	"91.217.42.2:8080",
-	"62.122.100.90:8080",
-	"62.165.42.170:8080",
-	"83.169.202.2:3128",
-	"82.146.52.210:8118"
-]
+upd = MacParser()
+mac = MacDownloader()
 
-dwnld = Downloader(proxyList)
-upd = Updater()
 if "-load" in sys.argv:
-	dwnld.downloadMain()
+	mac.downloadMain()
+
 if "-upd" in sys.argv:
-	upd.parseMain("mac")
+	upd.parseMain()
+	
 if "-load" in sys.argv:
-	dwnld.downloadEachPrice(upd.products)
+	mac.downloadPrices(upd.products)
+
 if "-upd" in sys.argv:
 	upd.parsePrices()
 	resturants.updateAll()

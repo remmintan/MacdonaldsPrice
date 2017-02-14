@@ -9,20 +9,22 @@ django.setup()
 
 from macprice.models import Product, ProductGroup, Resturant
 
-class Updater:
-	folder = "updaterdata"
-	curRest = "mac"
+def createSoupFromFile(fileAdress):
+	f = open(fileAdress, 'r')
+	data = f.read()
+	soup = BS(data, 'html5lib')
+	return soup
+
+class MacParser:
+	rest = "mac"
+	folder = "macdata"
 	
 	def __init__(self):
 		self.products = {}
 	
-	def parseMain(self, curRest):
-		self.curRest = curRest
-		
+	def parseMain(self):
 		print "Parsing main file into products dictionary..."
-		f = open(self.folder+'/main.html', 'r')
-		data = f.read()
-		soup = BS(data, 'html5lib')
+		soup = createSoupFromFile(self.folder+'/main.html')
 		products = soup.find('div', {'class':'products__list'})
 		rowList = products.findChildren('div', {'class':'row'})
 		for row in rowList:
@@ -39,25 +41,21 @@ class Updater:
 			for link in self.products.get(key):
 				fileAdress = self.folder+link[1]+".html"
 				print("Start parsing for: '%s'") % (fileAdress)
-				f = open(fileAdress, 'r')
-				soup = BS(f.read(), 'html5lib')
-				f.close()
+				soup = createSoupFromFile(fileAdress)
 				prices = self.getPrices(soup)
 				ccals = self.getCcals(soup)
 				newArray.append([link[0], prices[0], prices[1], ccals])
 			self.products[key] = newArray
 		
-		#код только для мака, у них почему-то Молочные коктейли в дессертах оказались. Все захардкожено, и это не хорошо.
-		if self.curRest == "mac":
-			print "Start govnocode section:"
-			deserts = []
-			for spec in self.products.get(u'Десерты'):
-				if u'Молочный' in spec[0]:
-					deserts.append(spec)
-					
-			for spec in deserts:
-				self.products.get(u'Десерты').remove(spec)
-				self.products.get(u'Напитки').append(spec)
+		print "Start govnocode section:"
+		deserts = []
+		for spec in self.products.get(u'Десерты'):
+			if u'Молочный' in spec[0]:
+				deserts.append(spec)
+				
+		for spec in deserts:
+			self.products.get(u'Десерты').remove(spec)
+			self.products.get(u'Напитки').append(spec)
 		
 	def getPrices(self, soup):
 		priceList = soup.find_all('h4', {'class':'product__show-price'});
@@ -103,9 +101,9 @@ class Updater:
 	def updatePlural(self, pg, pType, i, prod):
 		if Product.objects.filter(product_name = prod[0], group = pg, product_type=pType).exists():
 			p = Product.objects.filter(product_name = prod[0], group = pg, product_type=pType)[0]
-			p.update(prod[1][i], self.curRest, prod[3][i])
+			p.update(prod[1][i], self.rest, prod[3][i])
 		else:
-			p = Product(product_name=prod[0], group = pg, price=prod[1][i], product_type=pType, resturant = Resturant.objects.filter(short_name=self.curRest)[0], ccal = prod[3][i])
+			p = Product(product_name=prod[0], group = pg, price=prod[1][i], product_type=pType, resturant = Resturant.objects.filter(short_name=self.rest)[0], ccal = prod[3][i])
 			p.save()
 	
 	def updateDjango(self):
@@ -127,9 +125,9 @@ class Updater:
 				if prod[2] == "singular":
 					if Product.objects.filter(product_name = prod[0], group = pg).exists():
 						p = Product.objects.filter(product_name = prod[0], group = pg)[0]
-						p.update(prod[1][0], self.curRest, prod[3][0])
+						p.update(prod[1][0], self.rest, prod[3][0])
 					else:
-						p = Product(product_name=prod[0], group = pg, price=prod[1][0], resturant = Resturant.objects.filter(short_name=self.curRest)[0], ccal = prod[3][0])
+						p = Product(product_name=prod[0], group = pg, price=prod[1][0], resturant = Resturant.objects.filter(short_name=self.rest)[0], ccal = prod[3][0])
 						p.save()
 					
 					if prod[1][0] != -1:
