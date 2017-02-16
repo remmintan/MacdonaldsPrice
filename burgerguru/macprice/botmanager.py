@@ -116,7 +116,10 @@ class FFPriceBot:
 	
 	def updateUser(self):
 		username = self.__msg['from']['first_name']
-		usersurname = self.__msg['from']['last_name']
+		if 'last_name' in self.__msg['from'].keys():
+			usersurname = self.__msg['from']['last_name']
+		else:
+			usersurname = ""
 		
 		if not User.objects.filter(pk=self.__user_id).exists():
 			self.__user = User(id=self.__user_id, name=username,surname=usersurname)

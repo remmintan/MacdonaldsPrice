@@ -77,6 +77,7 @@ class Chat(models.Model):
 	requests = models.IntegerField(default=0)
 	
 	def __unicode__(self):
+		
 		if self.chatType == "private":
 			user = User.objects.filter(pk = self.pk)[0]
 			return "%s %s - %i" % (user.name, user.surname, self.requests)
