@@ -68,7 +68,7 @@ dwnld = Downloader(proxyList)
 
 class MacDownloader:
 	siteName = "mcdonalds.ru"
-	folder = "macdata"
+	folder = "macdata"	
 	
 	def downloadMain(self):
 		url = "http://"+self.siteName+"/products"
@@ -83,8 +83,20 @@ class MacDownloader:
 				if dwnld.downloadToFile(url, fileAdress) == -1:
 					print "Aborting..."
 					sys.exit()
-				time.sleep(1)
 
 class KfcDownloader:
 	siteName = "www.kfc.ru"
 	folderName = "kfcdata"
+
+	def downloadMain(self):
+		url="https://"+self.siteName
+		fileAdress = self.folderName+"/main.html"
+		dwnld.downloadToFile(url, fileAdress)
+
+	def downloadCats(self, links):
+		for link in links:
+			fileAdress = self.folderName+link+".html"
+			url = "https://"+self.siteName+link
+			dwnld.downloadToFile(url, fileAdress)
+	
+	
