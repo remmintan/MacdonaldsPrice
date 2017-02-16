@@ -203,8 +203,10 @@ class KfcParser:
 			prods = soup.findChild('ul', {'class':'products-detail-list group'})
 			lis = prods.findChildren('li')
 			for li in lis:
-				url = li.findChild('a')['href']
 				name = li.findChild('h4').text
+				if u"Пиво" in name or "Bud" in name:
+					continue;
+				url = li.findChild('a')['href']
 				self.products[catName].append([name, url])
 	
 	def parsePrices(self):
@@ -243,6 +245,8 @@ class KfcParser:
 				count += 1
 			pg.average_price = int(float(priceSum)/float(count))
 			pg.save()
+		
+		self.mirrorCheck();
 
 	def setPriority(self, arr):
 		reload(sys)
@@ -256,3 +260,17 @@ class KfcParser:
 				grp.save()
 			else:
 				print "Can't find"
+
+	def mirrorCheck(self):
+		print "Starting mirror check..."
+		keysArr = self.products.keys()
+		for group in ProductGroup.objects.filter(resturant=self.__resturan):
+			if group.group_name not in keysArr:
+				print "Deleting redundant group: %s" %(group.group_name)
+				group.delete()
+				continue;
+			prodArr = [prod[0] for prod in self.products.get(group.group_name)]
+			for product in Product.objects.filter(group = group):
+				if product.product_name not in prodArr:
+					print "Deleting redundant object: %s" % (product.product_name)
+					product.delete()

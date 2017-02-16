@@ -55,6 +55,7 @@ class User(models.Model):
 	surname = models.CharField(max_length=50)
 	RESTURANT_CHOICES = [
 		('mac', u'Макдональдс'),
+		('kfc', 'KFC'),
 	]
 	resturant = models.CharField(max_length=3, choices = RESTURANT_CHOICES, default="mac")
 	haveChosen = models.BooleanField(default=False)

@@ -18,6 +18,7 @@ if "kfc" in sys.argv:
 		u"Десерты":3,
 		u"Cалаты":3,
 		u"Снэки":3,
+		u"Соусы":9,
 	}
 	
 	kfc = KfcDownloader()

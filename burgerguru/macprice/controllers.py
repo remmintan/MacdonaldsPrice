@@ -19,7 +19,7 @@ def createOrder(summ, restName):
 	orderCounter = 0;
 	attempts = 0
 	for i in range(1, 4):
-		ord = Order(summ, Resturant.objects.filter(short_name=restName)[0])
+		ord = Order(summ, Resturant.objects.get(short_name=restName))
 		ord.size = i
 		ord.compileOrder(int(int(summ)*0.04))
 		if ord.products in prodCheckArray:
@@ -34,16 +34,16 @@ def createOrder(summ, restName):
 		orderText = u"*Ваш заказ. Вариант№%d:*\n"%orderCounter
 		counter=0
 		priceSum = 0
-		ccalSum = 0
+		if restName == "mac": ccalSum = 0
 		for prod in ord.products:
 			counter+=1
 			priceSum+=prod.price
-			ccalSum += prod.ccal
+			if restName == "mac": ccalSum += prod.ccal
 			name = prod.product_name
 			name+=types[prod.product_type]
-			s = u"{0}){1}: {2}руб.{3}ккал.\n".format(counter, name, prod.price, prod.ccal)
+			s = u"{0}){1}: {2}руб.{3}ккал.\n".format(counter, name, prod.price, prod.ccal) if restName == "mac" else u"{0}){1}: {2}руб.\n".format(counter, name, prod.price) 
 			orderText+=s
-		orderText += u"*Калорийность: %i ккал.*\n" % ccalSum
+		if restName == "mac": orderText += u"*Калорийность: %i ккал.*\n" % ccalSum
 		orderText+=u"*Итого: %i руб.*"%priceSum
 		responseText += orderText + "\n\n"
 		prodCheckArray.append(ord.products)
@@ -68,7 +68,7 @@ class Order:
 	def setAverSum(self):
 		self.averSum = 0
 		prodCount=0
-		for group in ProductGroup.objects.all():
+		for group in ProductGroup.objects.filter(resturant=self.rest):
 			if group.group_name == u"Соусы":
 				continue
 			groupLen = len(Product.objects.filter(group=group, resturant=self.rest))
@@ -149,7 +149,7 @@ class Order:
 		else:
 			priority = 1 if random()>0.7 else 3
 		
-		groups = ProductGroup.objects.filter(priority = priority)
+		groups = ProductGroup.objects.filter(priority = priority, resturant=self.rest)
 		group = self.getNewGroup(groups)
 		prod = self.getFromGroup(group)
 			
@@ -165,8 +165,8 @@ class Order:
 			self.addProduct()
 		
 		if self.summ>=19:
-			sousi = Product.objects.filter(group = ProductGroup.objects.filter(priority=9)[0], resturant=self.rest)
-			nap = Product.objects.filter(group = ProductGroup.objects.filter(priority=2)[0], resturant=self.rest)
+			sousi = Product.objects.filter(group = ProductGroup.objects.filter(priority=9, resturant=self.rest)[0], resturant=self.rest)
+			nap = Product.objects.filter(group = ProductGroup.objects.filter(priority=2, resturant=self.rest)[0], resturant=self.rest)
 			for prod in self.products:
 				if prod.product_type != "N":
 					if len(Product.objects.filter(product_name=prod.product_name, resturant=self.rest)) == 3 and not prod in nap:
