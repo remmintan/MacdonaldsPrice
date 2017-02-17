@@ -4,34 +4,8 @@
 		<title>Main page</title>
 	</head>
 	<body>
-		<h1>{{ l1.0.group.group_name }}</h1>
-		<ul>
-		{% for p in l1 %}
-			<li>{{ p.product_name }} {{ p.product_type }} - {{ p.price }}</li>
-		{% endfor %}
-		</ul>
-		<h1>Products 1</h1>
-		<ul>
-		{% for p in prodList %}
-			<li>{{ p.product_name }} {{ p.product_type }} - {{ p.price }}</li>
-		{% endfor %}
-		</ul>
-		<h2>{{ var.0 }}</h2>
-		
-		<h1>Products 2</h1>
-		<ul>
-		{% for p in prodList2 %}
-			<li>{{ p.product_name }} {{ p.product_type }} - {{ p.price }}</li>
-		{% endfor %}
-		</ul>
-		<h2>{{ var.1 }}</h2>
-		
-		<h1>Products 3</h1>
-		<ul>
-		{% for p in prodList3 %}
-			<li>{{ p.product_name }} {{ p.product_type }} - {{ p.price }}</li>
-		{% endfor %}
-		</ul>
-		<h2>{{ var.2 }}</h2>
+		{% for v in var%}
+			{{v}}<br>
+		{%endfor%}
 	</body>
 </html>

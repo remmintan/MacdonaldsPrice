@@ -9,37 +9,22 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
 from botmanager import FFPriceBot
-from controllers import Order
+from controllers import createOrder
+
+from dev.db import getGroupInfo
 
 # Create your views here.
+class GroupView(View):
+	def get(self, request, rest, name):
+		d = getGroupInfo(name, rest)
+		print d
+		return render(request, 'macprice/group.html', d)
+
 class DevView(View):
-	def get(self, request, sum):
-		l1 = Product.objects.filter(group=ProductGroup.objects.get(group_name="Кофе, чай")).order_by('price')
-		
-		iterations = int(int(sum)*0.04)
-		var = []
-		
-		ord = Order(sum)
-		ord.size = 1
-		ord.compileOrder(iterations)
-		products1=ord.products
-		var.append(int(sum)-int(ord.summ))
-		
-		ord = Order(sum)
-		ord.size = 2
-		ord.compileOrder(iterations)
-		products2=ord.products
-		var.append(int(sum)-int(ord.summ))
-		
-		ord = Order(sum)
-		ord.size = 3
-		ord.compileOrder(iterations)
-		products3=ord.products
-		var.append(int(sum)-int(ord.summ))
-		
-		return render(request, 'macprice/index.html', { 'l1':l1, 'prodList':products1, 'prodList2':products2, 'prodList3':products3, 'var':var})
-
-
+	def get(self, request, rest, sum):
+		var = createOrder(sum, rest)
+		var = var.split('\n')
+		return render(request, 'macprice/index.html', {'var':var})
 
 botsDict = {
 	"309603787:AAHB6uOEc9aRuQfUoYrjW_we4zF8LJIu82g":FFPriceBot("309603787:AAHB6uOEc9aRuQfUoYrjW_we4zF8LJIu82g"), #prodaction

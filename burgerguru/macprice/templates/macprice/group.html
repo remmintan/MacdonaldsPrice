@@ -1,0 +1,34 @@
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>Группа {{ name }}</title>
+	</head>
+	<body>
+		<style>
+			table{
+				border-collapse: collapse;
+			}
+			td{
+				border: solid 1px;
+				padding: 4px;
+			}
+		</style>
+		<table>
+			<tr>
+				<td>Навзание</td><td>{{ name }}</td>
+			</tr>
+			<tr>
+				<td>Средняя сумма</td><td>{{ aver }}</td>
+			</tr>
+			<tr>
+				<td>Минимальная цена</td><td>{{ low }}</td>
+			</tr>
+			<tr>
+				<td>Максимальная цена</td><td>{{ high }}</td>
+			</tr>
+			<tr>
+				<td>Дисперсия</td><td>{{ desp }}</td>
+			</tr>
+		</table>
+	</body>
+</html>
