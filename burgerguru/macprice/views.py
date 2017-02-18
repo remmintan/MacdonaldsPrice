@@ -11,21 +11,7 @@ from django.utils.decorators import method_decorator
 from botmanager import FFPriceBot
 from controllers import createOrder
 
-from dev.db import getGroupInfo
-
 # Create your views here.
-class GroupView(View):
-	def get(self, request, rest, name):
-		d = getGroupInfo(name, rest)
-		print d
-		return render(request, 'macprice/group.html', d)
-
-class DevView(View):
-	def get(self, request, rest, sum):
-		var = createOrder(sum, rest)
-		var = var.split('\n')
-		return render(request, 'macprice/index.html', {'var':var})
-
 botsDict = {
 	"309603787:AAHB6uOEc9aRuQfUoYrjW_we4zF8LJIu82g":FFPriceBot("309603787:AAHB6uOEc9aRuQfUoYrjW_we4zF8LJIu82g"), #prodaction
 	"279023466:AAHmCU7BcKcrR32Sw97esrCfa7C0oDykz9M":FFPriceBot("279023466:AAHmCU7BcKcrR32Sw97esrCfa7C0oDykz9M"), #development
