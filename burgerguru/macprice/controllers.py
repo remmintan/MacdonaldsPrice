@@ -49,7 +49,7 @@ def createOrder(summ, restName):
 		responseText += orderText + "\n\n"
 		prodCheckArray.append(ord.products)
 		
-	responseText+=u"Приятного аппетита!"
+	responseText+=u"Приятного аппетита!\nПри необходимости вы можете купить соусы на остаток денег."
 	return responseText;
 
 
