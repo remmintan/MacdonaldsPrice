@@ -96,9 +96,6 @@ class MacParser:
 				print "Creating group: %s" % (pg)
 			
 			prodArr = self.products.get(key)
-			priceSum = 0
-			withoutSum = 0
-			count = 0
 			for prod in prodArr:
 				print "Updating %s product %s" % (prod[2], prod[0])
 				if prod[2] == "singular":
@@ -108,12 +105,6 @@ class MacParser:
 					else:
 						p = Product(product_name=prod[0], group = pg, price=prod[1][0], resturant=self.__resturan, ccal = prod[3][0])
 						p.save()
-					
-					if prod[1][0] != -1:
-						priceSum += prod[1][0]
-						count+=1
-					else:
-						withoutSum+=1
 				else:
 					#govnokod
 					self.updatePlural(pg, "S", 0, prod)
@@ -136,9 +127,6 @@ class MacParser:
 							count+=1
 					else:
 						withoutSum+=len(prod[1])
-			
-			pg.average_price = priceSum/(count-withoutSum)
-			#print "%s		priceSum:%d  prodArr:%d  withoutSum:%d  average:%d" % (pg, priceSum, count, withoutSum, pg.average_price)
 			pg.save()
 			print "Sucsess!"
 			
@@ -231,9 +219,6 @@ class KfcParser:
 				pg.save()
 				print "Creating group: %s" % (pg)
 			prodArr = self.products.get(key)
-			priceSum = 0
-			withoutSum = 0
-			count = 0
 			for prod in prodArr:
 				if Product.objects.filter(product_name = prod[0], group = pg).exists():
 					p = Product.objects.filter(product_name = prod[0], group = pg)[0]
@@ -241,9 +226,6 @@ class KfcParser:
 				else:
 					p = Product(product_name=prod[0], group = pg, price=prod[1], resturant=self.__resturan, ccal = 0)
 					p.save()
-				priceSum += p.price
-				count += 1
-			pg.average_price = int(float(priceSum)/float(count))
 			pg.save()
 		
 		self.mirrorCheck();

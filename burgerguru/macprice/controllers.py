@@ -2,7 +2,7 @@
 
 from random import randint
 from random import random
-import math
+import math, numpy
 from models import ProductGroup, Product, User, Resturant
 
 types = {
@@ -54,62 +54,46 @@ def createOrder(summ, restName):
 
 class Order:
 	def __init__(self, summ, resturant):
-		self.summ = float(summ)
+		self.size = 2
 		self.products=[]
 		self.groups = []
 		self.prodNames = []
 		self.productsPriority = []
+		self.attempts = 0
+		self.summ = float(summ)
 		self.rest = resturant
-		self.setAverSum()
-		self.setHowMany()
-		self.size = 2
+	
+	def getRangeForGroup(self, group, size):
+		gp = [p.price for p in Product.objects.filter(group=group, price__gte=0, resturant=self.rest)]
+		first = int(numpy.percentile(gp, 34))
+		second = int(numpy.percentile(gp, 67))
+		max = int(numpy.max(gp))
+		min = int(numpy.min(gp))
+		bot, top = (min, first-1) if size == 1 else (first, second-1) if size==2 else (second, max)
+		return [bot, top, top-bot]
 		
-	
-	def setAverSum(self):
-		self.averSum = 0
-		prodCount=0
-		for group in ProductGroup.objects.filter(resturant=self.rest):
-			if group.group_name == u"Соусы":
-				continue
-			groupLen = len(Product.objects.filter(group=group, resturant=self.rest))
-			self.averSum+=group.average_price*groupLen
-			prodCount += groupLen
-		self.averSum /= prodCount
-	
-	def setHowMany(self):
-		if self.averSum == None:
-			return
-		self.count = math.ceil(self.summ/self.averSum)
-	
-	def getRangeForMoney(self, group, size):
-		gp = Product.objects.filter(group=group, price__gte=0, resturant=self.rest).order_by('-price')
-		if size == 1:
-			bot = gp.order_by('price')[0].price
-			top = group.average_price
-		if size == 2:
-			bot = group.average_price-self.findDesp(group)/2
-			top = group.average_price+self.findDesp(group)/2
-		if size == 3:
-			bot = group.average_price
-			top = gp.order_by('-price')[0].price
+		
+	def getRangeForMoney(self, group):
+		bt = self.getRangeForGroup(group, self.size)
+		bot = bt[0]
+		top = bt[1]
 		
 		if self.summ>=top:
 			return [bot, top]
 		elif self.summ<bot:
-			if size!=1:
-				return self.getRangeForMoney(group, size-1)
+			if self.size!=1:
+				self.size+=-1
+				return self.getRangeForMoney(group)
 			else:
 				return -1
 		else:
 			return [bot, self.summ]
 	
 	def getFromGroup(self, group):
-		size = self.size
-		
 		if self.summ<50:
-			size=1
+			self.size=1
 		
-		priceRange = self.getRangeForMoney(group, size)
+		priceRange = self.getRangeForMoney(group)
 		if priceRange == -1:
 			return -1
 		products = Product.objects.filter(group=group, price__gte=priceRange[0], resturant=self.rest).filter(price__lte=priceRange[1])
@@ -147,22 +131,29 @@ class Order:
 		if len(self.productsPriority)<3:
 			priority = len(self.productsPriority)+1
 		else:
-			priority = 1 if random()>0.7 else 3
+			priority = 1 if random()>0.6 else 3
 		
 		groups = ProductGroup.objects.filter(priority = priority, resturant=self.rest)
 		group = self.getNewGroup(groups)
 		prod = self.getFromGroup(group)
 			
-		if prod != -1:
+		if prod != -1 and prod.product_name not in self.prodNames:
 			self.summ+= -prod.price
 			self.products.append(prod)
 			self.prodNames.append(prod.product_name)
 			self.groups.append(group.group_name)
 			self.productsPriority.append(priority)
+			return 0
+		else:
+			if self.attempts>10:
+				return 0
+			else:
+				self.attempts+=1
+				return -1
 			
 	def compileOrder(self, size):
 		for i in range(0, size):
-			self.addProduct()
+			i+=self.addProduct()
 		
 		if self.summ>=19:
 			sousi = Product.objects.filter(group = ProductGroup.objects.filter(priority=9, resturant=self.rest)[0], resturant=self.rest)
@@ -174,20 +165,6 @@ class Order:
 						self.summ += -sousi[0].price
 						if self.summ<19:
 							break
-							
-	def findDesp(self, group):
-		products = Product.objects.filter(group=group, resturant=self.rest)
-		summ = 0
-		colProds = len(products)
-		for product in products:
-			if product.price == -1:
-				colProds+=-1
-			else:
-				summ += (product.price - group.average_price)**2
-		summ /= colProds
-		summ = math.sqrt(summ)
-		
-		return summ
 
 def createDictResturants():
 	diction = {}
