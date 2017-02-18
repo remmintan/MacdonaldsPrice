@@ -18,7 +18,7 @@ def createOrder(summ, restName):
 	prodCheckArray = []
 	orderCounter = 0;
 	attempts = 0
-	print "NEW ORDER ---------------------------------------------"
+	#print "NEW ORDER ---------------------------------------------"
 	
 	for i in range(1, 4):
 		ord = Order(summ, Resturant.objects.get(short_name=restName), i)
@@ -187,9 +187,9 @@ class Order:
 		for i in range(0, size):
 			i+=self.addProduct()
 		
-		print self.productsPriority
-		print self.sis
-		print
+		#print self.productsPriority
+		#print self.sis
+		#print
 		
 def createDictResturants():
 	diction = {}
