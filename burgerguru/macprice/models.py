@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 from django.db import models
 
 from decimal import Decimal
+from django.utils import timezone
 
 # Create your models here.
 class Resturant(models.Model):
@@ -74,11 +75,11 @@ class User(models.Model):
 class Chat(models.Model):
 	chatType = models.CharField(max_length=10)
 	requests = models.IntegerField(default=0)
+	lastRequest = models.DateTimeField(default=timezone.now)
 	
 	def __unicode__(self):
-		
 		if self.chatType == "private":
 			user = User.objects.filter(pk = self.pk)[0]
-			return "%s %s - %i" % (user.name, user.surname, self.requests)
+			return "%s %s - %i. Last request: %s.%s.%s %s:%s" % (user.name, user.surname, self.requests, self.lastRequest.day, self.lastRequest.month, self.lastRequest.year, self.lastRequest.hour, self.lastRequest.minute)
 		else:
 			return "%i (%s) - %i" % (self.pk, self.chatType, self.requests)

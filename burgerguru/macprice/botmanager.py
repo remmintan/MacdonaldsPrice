@@ -2,6 +2,7 @@
 
 import telepot
 from telepot.namedtuple import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
+from django.utils import timezone
 import controllers
 
 import logging
@@ -202,6 +203,7 @@ class FFPriceBot:
 		if Chat.objects.filter(pk=self.__chat_id).exists():
 			chat = Chat.objects.filter(pk=self.__chat_id)[0]
 			chat.requests += 1
+			chat.lastRequest = timezone.now()
 			chat.save()
 		self.processOrder(summ)
 
