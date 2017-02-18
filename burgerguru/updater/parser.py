@@ -97,7 +97,6 @@ class MacParser:
 			
 			prodArr = self.products.get(key)
 			for prod in prodArr:
-				print "Updating %s product %s" % (prod[2], prod[0])
 				if prod[2] == "singular":
 					if Product.objects.filter(product_name = prod[0], group = pg).exists():
 						p = Product.objects.filter(product_name = prod[0], group = pg)[0]
@@ -106,7 +105,7 @@ class MacParser:
 						p = Product(product_name=prod[0], group = pg, price=prod[1][0], resturant=self.__resturan, ccal = prod[3][0])
 						p.save()
 				else:
-					#govnokod
+					
 					self.updatePlural(pg, "S", 0, prod)
 					if len(prod[1])>1:
 						self.updatePlural(pg, "M", 1, prod)
@@ -114,19 +113,6 @@ class MacParser:
 						self.updatePlural(pg, "L", 2, prod)
 					if len(prod[1])>3:
 						self.updatePlural(pg, "X", 3, prod)
-						
-					
-					if prod[1][0]!=-1:
-						priceSum += prod[1][0]
-						count+=1
-						if len(prod[1])>1:
-							priceSum += prod[1][1]
-							count+=1
-						if len(prod[1])>2:
-							priceSum += prod[1][2]
-							count+=1
-					else:
-						withoutSum+=len(prod[1])
 			pg.save()
 			print "Sucsess!"
 			

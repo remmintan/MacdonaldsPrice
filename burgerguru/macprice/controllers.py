@@ -18,10 +18,11 @@ def createOrder(summ, restName):
 	prodCheckArray = []
 	orderCounter = 0;
 	attempts = 0
+	print "NEW ORDER ---------------------------------------------"
+	
 	for i in range(1, 4):
-		ord = Order(summ, Resturant.objects.get(short_name=restName))
-		ord.size = i
-		ord.compileOrder(int(int(summ)*0.04))
+		ord = Order(summ, Resturant.objects.get(short_name=restName), i)
+		ord.compileOrder(int(int(summ)*0.08))
 		if ord.products in prodCheckArray:
 			i -= 1
 			attempts += 1
@@ -53,15 +54,37 @@ def createOrder(summ, restName):
 
 
 class Order:
-	def __init__(self, summ, resturant):
-		self.size = 2
+	def __init__(self, summ, resturant, orderType=2):
 		self.products=[]
 		self.groups = []
 		self.prodNames = []
-		self.productsPriority = []
+		self.sis = []
 		self.attempts = 0
-		self.summ = float(summ)
+		
+		self.summ = int(summ)
 		self.rest = resturant
+		self.productsPriority = []
+		self.setOrdType(orderType)
+	
+	
+	def ordType(self):
+		return self.__ordType
+	
+	
+	def setOrdType(self, value):
+		self.__ordType = value
+		if self.summ>=500:
+			if self.__ordType == 1:
+				self.__ordType = 2
+		
+		if self.summ>=750:
+			self.__ordType = 3
+		elif self.summ<=150:
+			if self.__ordType==3:
+				self.__ordType = 2 
+			if self.__ordType==2:
+				self.__ordType = 1
+			
 	
 	def getRangeForGroup(self, group, size):
 		gp = [p.price for p in Product.objects.filter(group=group, price__gte=0, resturant=self.rest)]
@@ -73,34 +96,38 @@ class Order:
 		return [bot, top, top-bot]
 		
 		
-	def getRangeForMoney(self, group):
-		bt = self.getRangeForGroup(group, self.size)
+	def getRangeForMoney(self, group, ordType):
+		bt = self.getRangeForGroup(group, ordType)
 		bot = bt[0]
 		top = bt[1]
 		
 		if self.summ>=top:
 			return [bot, top]
 		elif self.summ<bot:
-			if self.size!=1:
-				self.size+=-1
-				return self.getRangeForMoney(group)
+			if ordType!=1:
+				ordType+=-1
+				return self.getRangeForMoney(group, ordType)
 			else:
 				return -1
 		else:
 			return [bot, self.summ]
 	
-	def getFromGroup(self, group):
+	def getFromGroup(self, group, ordType):
 		if self.summ<50:
-			self.size=1
+			ordType=1
 		
-		priceRange = self.getRangeForMoney(group)
+		priceRange = self.getRangeForMoney(group, ordType)
 		if priceRange == -1:
 			return -1
-		products = Product.objects.filter(group=group, price__gte=priceRange[0], resturant=self.rest).filter(price__lte=priceRange[1])
+		products = Product.objects.filter(group=group, price__gte=priceRange[0], price__lte=priceRange[1])
 		if len(products) == 1:
+			self.sis.append(ordType)
 			return products[0]
 		elif len(products)==0:
-			return -1
+			if ordType == 1: 
+				return -1
+			ordType+=-1
+			return self.getFromGroup(group, ordType)
 		else:
 			rnd = randint(0, len(products)-1)
 			prod = products[rnd]
@@ -112,8 +139,10 @@ class Order:
 					rnd+=-len(products)
 				prod = products[rnd+i]
 			
+			self.sis.append(ordType)
 			return prod
 	
+	#rewrite this shit!
 	def getNewGroup(self, groups, rnd=-1, deepness=0):
 		if rnd>=len(groups):
 			rnd = 0
@@ -128,16 +157,12 @@ class Order:
 			return groups[randint(0, len(groups)-1)]
 	
 	def addProduct(self):
-		if len(self.productsPriority)<3:
-			priority = len(self.productsPriority)+1
-		else:
-			priority = 1 if random()>0.6 else 3
-		
+		priority = self.getPriority()
 		groups = ProductGroup.objects.filter(priority = priority, resturant=self.rest)
 		group = self.getNewGroup(groups)
-		prod = self.getFromGroup(group)
+		prod = self.getFromGroup(group, self.__ordType)
 			
-		if prod != -1 and prod.product_name not in self.prodNames:
+		if prod != -1:
 			self.summ+= -prod.price
 			self.products.append(prod)
 			self.prodNames.append(prod.product_name)
@@ -150,22 +175,22 @@ class Order:
 			else:
 				self.attempts+=1
 				return -1
-			
+	
+	def getPriority(self):
+		for i in range(1, 4):
+			if i not in self.productsPriority:
+				return i
+				
+		return 1 if random()>0.7 else 3
+	
 	def compileOrder(self, size):
 		for i in range(0, size):
 			i+=self.addProduct()
 		
-		if self.summ>=19:
-			sousi = Product.objects.filter(group = ProductGroup.objects.filter(priority=9, resturant=self.rest)[0], resturant=self.rest)
-			nap = Product.objects.filter(group = ProductGroup.objects.filter(priority=2, resturant=self.rest)[0], resturant=self.rest)
-			for prod in self.products:
-				if prod.product_type != "N":
-					if len(Product.objects.filter(product_name=prod.product_name, resturant=self.rest)) == 3 and not prod in nap:
-						self.products.append(sousi[randint(0, len(sousi)-1)])
-						self.summ += -sousi[0].price
-						if self.summ<19:
-							break
-
+		print self.productsPriority
+		print self.sis
+		print
+		
 def createDictResturants():
 	diction = {}
 	for part in User.RESTURANT_CHOICES:
