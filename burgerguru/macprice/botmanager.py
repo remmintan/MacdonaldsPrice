@@ -57,7 +57,7 @@ class FFPriceBot:
 			ls = self.__user.lastSum
 			orderText = u"Другие варианты заказа на сумму %d руб.\n\n"%ls
 			orderText += controllers.createOrder(ls, self.__user.resturant)
-			self.sendMessage(orderText, self.getKeyboard([u"Повторить заказ", u"Выбрать другой ресторан"]))
+			self.sendMessage(orderText, self.getKeyboard([u"Другие варианты заказа", u"Выбрать другой ресторан"]))
 		
 	
 	def changeResturan(self):
