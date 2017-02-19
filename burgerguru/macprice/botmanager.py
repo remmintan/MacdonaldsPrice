@@ -44,7 +44,7 @@ class FFPriceBot:
 		
 		self.__textCommands = {
 			u"Выбрать другой ресторан":self.changeResturan,
-			u"Повторить заказ":self.repeatOrder,
+			u"Другие варианты заказа":self.repeatOrder,
 		}
 		
 		self.__resturants = controllers.createDictResturants()
@@ -55,7 +55,7 @@ class FFPriceBot:
 			self.sendError("firstorder")
 		else:
 			ls = self.__user.lastSum
-			orderText = u"Повторяю заказ на сумму %d руб.\n\n"%ls
+			orderText = u"Другие варианты заказа на сумму %d руб.\n\n"%ls
 			orderText += controllers.createOrder(ls, self.__user.resturant)
 			self.sendMessage(orderText, self.getKeyboard([u"Повторить заказ", u"Выбрать другой ресторан"]))
 		
@@ -84,8 +84,7 @@ class FFPriceBot:
 	def getKeyboard(self,btnsArr):
 		keyboardButtons=[]
 		for button in btnsArr:
-			keyboardButtons.append([KeyboardButton(text=button)])	
-		self.log.info(keyboardButtons)		
+			keyboardButtons.append([KeyboardButton(text=button)])		
 		keyboard = ReplyKeyboardMarkup(keyboard = keyboardButtons,resize_keyboard=True)
 		return keyboard
 	

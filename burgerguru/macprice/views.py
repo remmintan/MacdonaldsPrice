@@ -11,6 +11,8 @@ from django.utils.decorators import method_decorator
 from botmanager import FFPriceBot
 from controllers import createOrder
 
+import logging
+
 # Create your views here.
 botsDict = {
 	"309603787:AAHB6uOEc9aRuQfUoYrjW_we4zF8LJIu82g":FFPriceBot("309603787:AAHB6uOEc9aRuQfUoYrjW_we4zF8LJIu82g"), #prodaction
@@ -19,6 +21,9 @@ botsDict = {
 
 
 class TelegramView(View):
+	def __init__(self):
+		self.log = logging.getLogger('django.request')
+	
 	def post(self, request, token):
 		if not (token in botsDict.keys()):
 			return HttpResponseForbidden('Invalid bot token')
@@ -33,7 +38,9 @@ class TelegramView(View):
 			try:
 				activeBot.processRequest(payload)
 			except KeyError as e:
-				return HttpResponseBadRequest('KeyError in body: %s' % str(e))
+				text = 'KeyError in body: %s' % str(e)
+				self.log.error(text)
+				return HttpResponseBadRequest('KeyError in body')
 			
 		response = JsonResponse({})
 		response.status_code = 200
