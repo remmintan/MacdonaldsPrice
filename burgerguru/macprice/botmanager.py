@@ -71,7 +71,7 @@ class FFPriceBot:
 		helpArray = ["*Справка:*\n"
 			"Введите сумму в рублях, которую вы готовы потратить на заказ. Сумму необходимо вводить без указания валюты, кавычек или других символов. Например: Если вы хотите, чтобы бот предложил зказазы, уложившись в 350 рублей, вам надо отправить боту просто число 350.",
 			"Если была введена сумма более 1000 рублей, она будет автоматически понижена ботом до 1000 рублей.",
-			"Кнопка \"Повторить заказ\" формирует заказы на сумму последнего Вашего заказа.\n",
+			"Кнопка \"Другие варианты заказа\" формирует заказы на сумму последнего Вашего заказа.\n",
 			"/about - О возможностях бота",
 			"/otherff - Выбрать другой ресторан",
 			"/donate - Поддержать развитие бота",
@@ -111,7 +111,7 @@ class FFPriceBot:
 		if errType in self.__errors:
 			errorText += self.__errors[errType]
 		errorText += self.__errors['baseend']
-		self.sendMessage(errorText)
+		self.sendMessage(errorText, self.getKeyboard([u"Другие варианты заказа", u"Выбрать другой ресторан"]))
 		
 	
 	def updateUser(self):
@@ -225,5 +225,5 @@ class FFPriceBot:
 		self.__user.save()
 		
 		orderText = controllers.createOrder(summ, self.__user.resturant)
-		self.sendMessage(orderText, self.getKeyboard([u"Повторить заказ", u"Выбрать другой ресторан"]))
+		self.sendMessage(orderText, self.getKeyboard([u"Другие варианты заказа", u"Выбрать другой ресторан"]))
 
