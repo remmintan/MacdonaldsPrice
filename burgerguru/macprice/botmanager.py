@@ -111,7 +111,7 @@ class FFPriceBot:
 		if errType in self.__errors:
 			errorText += self.__errors[errType]
 		errorText += self.__errors['baseend']
-		self.sendMessage(errorText, self.getKeyboard([u"Другие варианты заказа", u"Выбрать другой ресторан"]))
+		self.sendMessage(errorText)
 		
 	
 	def updateUser(self):
