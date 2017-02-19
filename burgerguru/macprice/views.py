@@ -40,7 +40,7 @@ class TelegramView(View):
 			except KeyError as e:
 				text = 'KeyError in body: %s' % str(e)
 				self.log.error(text)
-				return HttpResponseBadRequest('KeyError in body')
+				self.log.error(payload)
 			
 		response = JsonResponse({})
 		response.status_code = 200
