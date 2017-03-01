@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import telepot
+from telepot.exception import TelegramError
+
 from telepot.namedtuple import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from django.utils import timezone
 import controllers
@@ -101,11 +103,14 @@ class FFPriceBot:
 		self.sendMessage(self.__commands['startText'], keyboard)
 	
 	def sendMessage(self, text, keyboard = None):
-		if keyboard == None:
-			self.__bot.sendMessage(self.__chat_id, text, parse_mode='Markdown', disable_web_page_preview = True)
-		else:
-			self.__bot.sendMessage(self.__chat_id, text, parse_mode='Markdown', reply_markup = keyboard, disable_web_page_preview = True)
-	
+		try:
+			if keyboard == None:
+				self.__bot.sendMessage(self.__chat_id, text, parse_mode='Markdown', disable_web_page_preview = True)
+			else:
+				self.__bot.sendMessage(self.__chat_id, text, parse_mode='Markdown', reply_markup = keyboard, disable_web_page_preview = True)
+		except TelegramError as e:
+			self.log.error('Some Telegram error was occurate! %s' % e.description)
+			
 	def sendError(self, errType):
 		errorText = self.__errors['basestart']
 		if errType in self.__errors:

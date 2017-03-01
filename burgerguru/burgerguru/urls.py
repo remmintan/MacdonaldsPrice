@@ -19,5 +19,6 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^guru/', admin.site.urls),
     url(r'^bot/', include('macprice.urls')),
+    url(r'^stats/', include('stats.urls'))
     #url(r'^dev/', include('dev.urls', namespace="dev")),
 ]
