@@ -33,7 +33,7 @@
 					<td onclick='sortTable(1)'>Name</td>
 					<td onclick='sortTable(2)'>Id</td>
 					<td onclick='sortTable(3)'>Requests</td>
-					<td onclick='sortTable(4)'>Last request</td>
+					<td>Last request</td>
 				</tr>
 			</thead>
 			<tbody id='sort_table'>
@@ -57,6 +57,7 @@
 				if(count == 0 || count == 2 || count ==3){
 					rows.sort(function (a,b){
 						var tmp = parseInt(a.children[count].innerHTML)-parseInt(b.children[count].innerHTML);
+						if(count == 0) return tmp;
 						return -tmp;
 					})
 				}else if(count==4){
