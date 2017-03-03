@@ -1,0 +1,73 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Группа {{ name }}</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+
+        td {
+            border: solid 1px;
+            padding: 4px;
+        }
+    </style>
+</head>
+<body>
+<table>
+    <tr>
+        <td>Навзание</td>
+        <td>{{ name }}</td>
+    </tr>
+    <tr>
+        <td>Средняя сумма</td>
+        <td>{{ aver }}</td>
+    </tr>
+    <tr>
+        <td>Медиана</td>
+        <td>{{ med }}</td>
+    </tr>
+    <tr>
+        <td>Минимальная цена</td>
+        <td>{{ low }}</td>
+    </tr>
+    <tr>
+        <td>Максимальная цена</td>
+        <td>{{ high }}</td>
+    </tr>
+    <tr>
+        <td>Дисперсия</td>
+        <td>{{ desp }}</td>
+    </tr>
+    <tr>
+        <td>Трети</td>
+        <td>{{ tret.0 }} {{ tret.1 }}</td>
+    </tr>
+
+    <tr>
+        <td>Все продукты группы</td>
+        <td>
+            {% for prod in all %}
+                {{ prod.product_name }} - {{ prod.price }}руб. {{ prod.ccals }}ккал.<br>
+            {% endfor %}
+        </td>
+    </tr>
+    {% for rg in ranges %}
+        <tr>
+            <td>Для размера {{ rg.1 }}</td>
+            <td>Минимум: {{ rg.0 }}<br>Максимум: {{ rg.0.1 }}<br>Ценовой диапазон: {{ rg.0.2 }}</td>
+        </tr>
+    {% endfor %}
+    {% for rg in prodrang %}
+        <tr>
+            <td>Для размера {{ rg.1 }}</td>
+            <td>
+                {% for prod in rg.0 %}
+                    {{ prod.product_name }} - {{ prod.price }}руб. {{ prod.ccals }}ккал.<br>
+                {% endfor %}
+            </td>
+        </tr>
+    {% endfor %}
+</table>
+</body>
+</html>

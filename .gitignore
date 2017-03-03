@@ -39,6 +39,9 @@ guru/burgerguru/settings.py
 .idea/
 env/
 guru/burgerguru/__pycache__/
-guru/dev/
 guru/macprice/__pycache__/
 guru/stats/__pycache__/
+guru/__pycache__/
+guru/macprice/migrations/__pycache__/
+guru/stats/migrations/__pycache__/
+guru/updater/__pycache__/
