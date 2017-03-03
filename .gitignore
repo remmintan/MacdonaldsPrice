@@ -2,10 +2,8 @@
 ###################
 *.com
 *.class
-*.dll
-*.exe
 *.o
-*.so
+
 
 # Packages #
 ############
@@ -13,7 +11,6 @@
 # git has its own built in compression methods
 *.7z
 *.dmg
-*.gz
 *.iso
 *.jar
 *.rar
@@ -36,7 +33,12 @@
 ehthumbs.db
 Thumbs.db
 *.pyc
-env/*
-burgerguru/static/*
-burgerguru/burgerguru/gunicorn.conf.py
-burgerguru/burgerguru/settings.py
+guru/static/*
+guru/burgerguru/gunicorn.conf.py
+guru/burgerguru/settings.py
+.idea/
+env/
+guru/burgerguru/__pycache__/
+guru/dev/
+guru/macprice/__pycache__/
+guru/stats/__pycache__/
