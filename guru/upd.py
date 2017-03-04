@@ -7,9 +7,9 @@ import django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "burgerguru.settings")
 django.setup()
 
-from guru.updater.loader import MacDownloader, KfcDownloader, BKDownloader
-from guru.updater.parser import MacParser, KfcParser, BKParser
-from guru.updater.resturants import update_all
+from updater.loader import MacDownloader, KfcDownloader, BKDownloader
+from updater.parser import MacParser, KfcParser, BKParser
+from updater.resturants import update_all
 
 update_all()
 
