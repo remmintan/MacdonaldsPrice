@@ -246,3 +246,65 @@ class KfcParser:
                 if product.product_name not in prod_arr:
                     print("Deleting redundant object: %s" % product.product_name)
                     product.delete()
+
+
+class BKParser:
+    rest = "bk"
+    folder = "bkdata"
+
+    def __init__(self):
+        self.resturant = Resturant.objects.get(short_name=self.rest)
+        self.cats_arr = []
+        self.prods_arr = []
+
+    def parse_main(self):
+        file_adress = self.folder+"/main.html"
+        soup = create_soup_from_file(file_adress)
+        cont = soup.findChildren('div', {'class': 'container'})[2]
+
+        divs = cont.findChildren('div', {'class': 'col-md-12'})
+
+        for cat in divs:
+            cat_name = cat.findChild('h3').text
+            if ProductGroup.objects.filter(group_name=cat_name, resturant=self.resturant).exists():
+                print("Updating group: %s" % cat_name)
+                pg = ProductGroup.objects.get(group_name=cat_name, resturant=self.resturant)
+            else:
+                print("Creating group: %s" % cat_name)
+                pg = ProductGroup(group_name=cat_name, resturant=self.resturant)
+                pg.save()
+            self.cats_arr.append(cat_name)
+            trs = cat.findChild('tbody').findChildren('tr')
+            for tr in trs:
+                tds = tr.findChildren('td')
+                prod_name = tds[1].text.lower().capitalize()
+                prod_cost = int(tds[3].text.split()[0])
+                if Product.objects.filter(product_name=prod_name, group=pg).exists():
+                    p = Product.objects.filter(product_name=prod_name, group=pg)[0]
+                    p.update(prod_cost, self.rest, 0)
+                else:
+                    p = Product(product_name=prod_name, group=pg, price=prod_cost, resturant=self.resturant, ccal=0)
+                    p.save()
+                self.prods_arr.append(prod_name)
+
+    def mirror_check(self):
+        print("Starting mirror check...")
+        for group in ProductGroup.objects.filter(resturant=self.resturant):
+            if group.group_name not in self.cats_arr:
+                print("Deleting redundant group: %s" % group.group_name)
+                group.delete()
+                continue
+            for product in Product.objects.filter(group=group):
+                if product.product_name not in self.prods_arr:
+                    print("Deleting redundant object: %s" % product.product_name)
+                    product.delete()
+
+    def set_priority(self, arr):
+        groups = ProductGroup.objects.filter(resturant=self.resturant)
+        for grp in groups:
+            print("Setting up priority for: %s" % grp.group_name)
+            if grp.group_name in arr.keys():
+                grp.priority = arr[grp.group_name]
+                grp.save()
+            else:
+                print("Can't find")

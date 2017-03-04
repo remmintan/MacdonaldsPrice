@@ -6,11 +6,10 @@ from django.utils import timezone
 
 # Create your models here.
 class Resturant(models.Model):
-    app_label = "macprice"
     short_name = models.CharField(max_length=3)
     long_name = models.CharField(max_length=30)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.long_name
 
 
@@ -19,7 +18,7 @@ class ProductGroup(models.Model):
     priority = models.IntegerField(default=10)  # default rating is really low
     resturant = models.ForeignKey(Resturant)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.group_name
 
 
@@ -44,7 +43,7 @@ class Product(models.Model):
         self.ccal = ccals
         self.save()
 
-    def __unicode__(self):
+    def __str__(self):
         if self.product_type == "N":
             return "{0} - {1} ({2})".format(self.product_name, self.price, self.ccal)
         else:
@@ -57,6 +56,7 @@ class User(models.Model):
     RESTURANT_CHOICES = [
         ('mac', u'Макдональдс'),
         ('kfc', 'KFC'),
+        ('bk', u'Бургер Кинг'),
     ]
     resturant = models.CharField(max_length=3, choices=RESTURANT_CHOICES, default="mac")
     haveChosen = models.BooleanField(default=False)
@@ -70,7 +70,7 @@ class User(models.Model):
             self.surname = surname
             self.save()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s - %i" % (self.name, self.surname, self.pk)
 
 
@@ -79,7 +79,7 @@ class Chat(models.Model):
     requests = models.IntegerField(default=0)
     lastRequest = models.DateTimeField(default=timezone.now)
 
-    def __unicode__(self):
+    def __str__(self):
         if self.chatType == "private":
             user = User.objects.filter(pk=self.pk)[0]
             return "%s %s - %i. Last request: %s.%s.%s %s:%s" % (

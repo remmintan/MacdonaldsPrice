@@ -100,3 +100,12 @@ class KfcDownloader:
             file_adress = self.folderName + link + ".html"
             url = "https://" + self.siteName + link
             dwnld.download_to_file(url, file_adress)
+
+
+class BKDownloader:
+    siteName = "http://www.burgerking-menu-i-ceny.ru/"
+    foldername = "bkdata"
+
+    def dowload_main(self):
+        file_adress = self.foldername+"/main.html"
+        dwnld.download_to_file(self.siteName, file_adress)
