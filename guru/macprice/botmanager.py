@@ -111,6 +111,7 @@ class FFPriceBot:
             else:
                 self.__bot.sendMessage(self.__chat_id, text, parse_mode='Markdown', reply_markup=keyboard,
                                        disable_web_page_preview=True)
+            self.log.info("Just sent message to %s. Everything ok!" % self.__chat_id)
         except TelegramError as e:
             self.log.error('Some Telegram error was occurate! %s' % e.description)
 
