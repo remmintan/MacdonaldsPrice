@@ -21,7 +21,7 @@ botsDict = {
 class TelegramView(View):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.log = logging.getLogger('django.request')
+        self.log = logging.getLogger('django')
 
     def post(self, request, token):
         if not (token in botsDict.keys()):
