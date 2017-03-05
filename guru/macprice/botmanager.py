@@ -119,7 +119,7 @@ class FFPriceBot:
             self.log_info.info("Just sent message to %s. Everything ok!" % self.__chat_id)
         except TooManyRequestsError as e:
             wait_time = e.json['parameters']['retry_after']
-            self.log_error.error('Too many requests! Wait time' % wait_time)
+            self.log_error.error('Too many requests! Wait time %i' % wait_time)
             time.sleep(wait_time+1)
             self.sendMessage(text, keyboard)
         except TelegramError as e:
