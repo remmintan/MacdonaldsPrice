@@ -36,7 +36,7 @@ class TelegramView(View):
             return HttpResponseBadRequest('Invalid request body')
         else:
             try:
-                activeBot.processRequest(payload)
+                activeBot.process_request(payload)
             except KeyError as e:
                 text = 'KeyError in body: %s' % str(e)
                 self.log_error.error(text)
