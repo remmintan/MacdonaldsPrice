@@ -6,6 +6,10 @@ from django.utils import timezone
 from telepot.exception import TelegramError, TooManyRequestsError
 from telepot.namedtuple import ReplyKeyboardMarkup, KeyboardButton
 
+import sys
+
+import time
+
 from macprice import controllers
 from macprice.models import User, Chat
 
@@ -114,7 +118,10 @@ class FFPriceBot:
                                        disable_web_page_preview=True)
             self.log_info.info("Just sent message to %s. Everything ok!" % self.__chat_id)
         except TooManyRequestsError as e:
-            self.log_error.error('Too many requests! %s' % e.json)
+            wait_time = e.json['parameters']['retry_after']
+            self.log_error.error('Too many requests! Wait time' % wait_time)
+            time.sleep(wait_time+1)
+            self.sendMessage(text, keyboard)
         except TelegramError as e:
             self.log_error.error('Some Telegram error was occurate! %s' % e.description)
 
