@@ -17,7 +17,8 @@ class FFPriceBot:
         self.__chat_id = ""
         self.__user_id = ""
 
-        self.log = logging.getLogger('django')
+        self.log_info = logging.getLogger('django')
+        self.log_error = logging.getLogger('django.request')
         self.__bot = telepot.Bot(token)
         self.__commands = {
             "start": self.start,
@@ -111,9 +112,9 @@ class FFPriceBot:
             else:
                 self.__bot.sendMessage(self.__chat_id, text, parse_mode='Markdown', reply_markup=keyboard,
                                        disable_web_page_preview=True)
-            self.log.info("Just sent message to %s. Everything ok!" % self.__chat_id)
+            self.log_info.info("Just sent message to %s. Everything ok!" % self.__chat_id)
         except TelegramError as e:
-            self.log.error('Some Telegram error was occurate! %s' % e.description)
+            self.log_error.error('Some Telegram error was occurate! %s' % e.description)
 
     def sendError(self, errType):
         errorText = self.__errors['basestart']

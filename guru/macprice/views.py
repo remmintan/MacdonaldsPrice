@@ -21,7 +21,8 @@ botsDict = {
 class TelegramView(View):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.log = logging.getLogger('django')
+        self.log_info = logging.getLogger('django')
+        self.log_error = logging.getLogger('django.request')
 
     def post(self, request, token):
         if not (token in botsDict.keys()):
@@ -38,8 +39,8 @@ class TelegramView(View):
                 activeBot.processRequest(payload)
             except KeyError as e:
                 text = 'KeyError in body: %s' % str(e)
-                self.log.error(text)
-                self.log.error(payload)
+                self.log_error.error(text)
+                self.log_error.error(payload)
 
         response = JsonResponse({})
         response.status_code = 200
