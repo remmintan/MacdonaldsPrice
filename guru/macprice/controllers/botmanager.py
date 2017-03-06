@@ -6,16 +6,38 @@ from django.utils import timezone
 from telepot.exception import TelegramError, TooManyRequestsError
 from telepot.namedtuple import ReplyKeyboardMarkup, KeyboardButton
 
-import sys
+from random import randint
+from random import random
 
-import time
+import numpy
+from macprice.models import ProductGroup, Product, User, Resturant, Chat
 
-from macprice import controllers
-from macprice.models import User, Chat
+
+def createDictResturants():
+    diction = {}
+    for part in User.RESTURANT_CHOICES:
+        diction[part[1]] = part[0]
+    return diction
 
 
 class FFPriceBot:
-    def __init__(self, token):
+    # Create your views here.
+    bots_dict = {
+        # prodaction
+        "309603787:AAHB6uOEc9aRuQfUoYrjW_we4zF8LJIu82g": telepot.Bot("309603787:AAHB6uOEc9aRuQfUoYrjW_we4zF8LJIu82g"),
+        # development
+        "279023466:AAHmCU7BcKcrR32Sw97esrCfa7C0oDykz9M": telepot.Bot("279023466:AAHmCU7BcKcrR32Sw97esrCfa7C0oDykz9M"),
+    }
+
+    types = {
+        "N": u"",
+        "S": u" (мал.)",
+        "M": u" (станд.)",
+        "L": u" (бол.)",
+        "X": u" (оч.бол.)",
+    }
+
+    def __init__(self):
         self.__user = None
         self.__msg = ""
         self.__chat_id = ""
@@ -23,7 +45,6 @@ class FFPriceBot:
 
         self.log_info = logging.getLogger('django')
         self.log_error = logging.getLogger('django.request')
-        self.__bot = telepot.Bot(token)
         self.__commands = {
             "start": self.start,
             "startText": "Введите сумму (в рублях), которую вы готовы потратить и я подскажу вам несколько заказов, которые уложатся в эту сумму.",
@@ -57,7 +78,10 @@ class FFPriceBot:
             u"Другие варианты заказа": self.repeat_order,
         }
 
-        self.__resturants = controllers.createDictResturants()
+        self.__resturants = createDictResturants()
+
+    def set_bot(self, token):
+        self.__bot = self.bots_dict[token]
 
     def repeat_order(self):
         if self.__user.lastSum == 0:
@@ -65,7 +89,7 @@ class FFPriceBot:
         else:
             ls = self.__user.lastSum
             order_text = u"Другие варианты заказа на сумму %d руб.\n\n" % ls
-            order_text += controllers.createOrder(ls, self.__user.resturant)
+            order_text += self.create_order(ls)
             self.send_message(order_text, self.get_keyboard([u"Другие варианты заказа", u"Выбрать другой ресторан"]))
 
     def change_resturan(self):
@@ -116,12 +140,11 @@ class FFPriceBot:
             else:
                 self.__bot.sendMessage(self.__chat_id, text, parse_mode='Markdown', reply_markup=keyboard,
                                        disable_web_page_preview=True)
-            self.log_info.info("Just sent message to %s. Everything ok!" % self.__chat_id)
         except TooManyRequestsError as e:
             wait_time = e.json['parameters']['retry_after']
             self.log_error.error('Too many requests! Wait time %i' % wait_time)
-            #time.sleep(wait_time+1)  # this system is shit. it shuts down th whole server
-            #self.send_message(text, keyboard)
+            # time.sleep(wait_time+1)  # this system is shit. it shuts down th whole server
+            # self.send_message(text, keyboard)
         except TelegramError as e:
             self.log_error.error('Some Telegram error was occurate! %s' % e.description)
 
@@ -187,7 +210,7 @@ class FFPriceBot:
         text = self.__msg['text']
 
         if text in self.__resturants.keys():
-            self.__user.resturant = self.__resturants[text]
+            self.__user.resturantt = self.__resturants[text]
             self.__user.haveChosen = True
             self.__user.save()
             self.start2()
@@ -242,5 +265,191 @@ class FFPriceBot:
         self.__user.lastSum = summ
         self.__user.save()
 
-        orderText = controllers.createOrder(summ, self.__user.resturant)
+        orderText = self.create_order(summ)
         self.send_message(orderText, self.get_keyboard([u"Другие варианты заказа", u"Выбрать другой ресторан"]))
+
+    def create_order(self, summ):
+        response_text = ""
+        prod_check_array = []
+        order_counter = 0
+        attempts = 0
+        # print "NEW ORDER ---------------------------------------------"
+
+        for i in range(1, 4):
+            order = Order(summ, Resturant.objects.get(short_name=self.__user.resturant), i)
+            order.compileOrder(int(int(summ) * 0.08))
+            if order.products in prod_check_array:
+                i -= 1
+                attempts += 1
+                if attempts > 6:
+                    break
+                continue
+            else:
+                order_counter += 1
+
+            order_text = u"*Ваш заказ. Вариант№%d:*\n" % order_counter
+            counter = 0
+            price_sum = 0
+            ccal_sum = 0
+
+
+            for prod in order.products:
+                counter += 1
+                price_sum += prod.price
+                if self.__user.resturant == "mac":
+                    ccal_sum += prod.ccal
+                name = prod.product_name
+                name += self.types[prod.product_type]
+                s = u"{0}){1}: {2}руб.{3}ккал.\n".format(counter, name, prod.price,
+                                                         prod.ccal) if self.__user.resturant == "mac" else u"{0}){1}: {2}руб.\n".format(
+                    counter, name, prod.price)
+                order_text += s
+            if self.__user.resturant == "mac":
+                order_text += u"*Калорийность: %i ккал.*\n" % ccal_sum
+            order_text += u"*Итого: %i руб.*" % price_sum
+            response_text += order_text + "\n\n"
+            prod_check_array.append(order.products)
+
+        response_text += u"Приятного аппетита!\nПри необходимости вы можете купить соусы на остаток денег."
+        return response_text
+
+
+
+class Order:
+    def __init__(self, summ, resturant, orderType=2):
+        self.__ordType = 1
+        self.products = []
+        self.groups = []
+        self.prodNames = []
+        self.sis = []
+        self.attempts = 0
+
+        self.summ = int(summ)
+        self.rest = resturant
+        self.productsPriority = []
+        self.setOrdType(orderType)
+
+    def ordType(self):
+        return self.__ordType
+
+    def setOrdType(self, value):
+        self.__ordType = value
+        if self.summ >= 500:
+            if self.__ordType == 1:
+                self.__ordType = 2
+
+        if self.summ >= 750:
+            self.__ordType = 3
+        elif self.summ <= 150:
+            if self.__ordType == 3:
+                self.__ordType = 2
+            if self.__ordType == 2:
+                pass
+
+    def getRangeForGroup(self, group, size):
+        gp = [p.price for p in Product.objects.filter(group=group, price__gte=0, resturant=self.rest)]
+        first = int(numpy.percentile(gp, 34))
+        second = int(numpy.percentile(gp, 67))
+        maximum = int(numpy.max(gp))
+        minimum = int(numpy.min(gp))
+        bot, top = (minimum, first - 1) if size == 1 else (first, second - 1) if size == 2 else (second, maximum)
+        return [bot, top, top - bot]
+
+    def getRangeForMoney(self, group, ordType):
+        bt = self.getRangeForGroup(group, ordType)
+        bot = bt[0]
+        top = bt[1]
+
+        if self.summ >= top:
+            return [bot, top]
+        elif self.summ < bot:
+            if ordType != 1:
+                ordType += -1
+                return self.getRangeForMoney(group, ordType)
+            else:
+                return -1
+        else:
+            return [bot, self.summ]
+
+    def getFromGroup(self, group, ordType):
+        if self.summ < 50:
+            ordType = 1
+
+        priceRange = self.getRangeForMoney(group, ordType)
+        if priceRange == -1:
+            return -1
+        products = Product.objects.filter(group=group, price__gte=priceRange[0], price__lte=priceRange[1])
+        if len(products) == 1:
+            self.sis.append(ordType)
+            return products[0]
+        elif len(products) == 0:
+            if ordType == 1:
+                return -1
+            ordType += -1
+            return self.getFromGroup(group, ordType)
+        else:
+            rnd = randint(0, len(products) - 1)
+            prod = products[rnd]
+
+            for i in range(0, len(products)):
+                if not prod.product_name in self.prodNames:
+                    break
+                if rnd + i >= len(products):
+                    rnd += -len(products)
+                prod = products[rnd + i]
+
+            self.sis.append(ordType)
+            return prod
+
+            # rewrite this shit!
+
+    def getNewGroup(self, groups, rnd=-1, deepness=0):
+        if rnd >= len(groups):
+            rnd = 0
+        offset = randint(0, len(groups) - 1) if rnd == -1 else rnd
+        grp = groups[offset]
+        if grp.group_name in self.groups and deepness < len(groups):
+            return self.getNewGroup(groups, offset + 1, deepness + 1)
+        elif deepness < len(groups):
+            return grp
+        else:
+            # all groups were used
+            return groups[randint(0, len(groups) - 1)]
+
+    def addProduct(self):
+        priority = self.getPriority()
+        groups = ProductGroup.objects.filter(priority=priority, resturant=self.rest)
+        group = self.getNewGroup(groups)
+        prod = self.getFromGroup(group, self.__ordType)
+
+        if prod != -1:
+            self.summ += -prod.price
+            self.products.append(prod)
+            self.prodNames.append(prod.product_name)
+            self.groups.append(group.group_name)
+            self.productsPriority.append(priority)
+            return 0
+        else:
+            if self.attempts > 10:
+                return 0
+            else:
+                self.attempts += 1
+                return -1
+
+    def getPriority(self):
+        for i in range(1, 4):
+            if i not in self.productsPriority:
+                return i
+
+        return 1 if random() > 0.7 else 3
+
+    def compileOrder(self, size):
+        for i in range(0, size):
+            i += self.addProduct()
+
+            # print self.productsPriority
+            # print self.sis
+            # print
+
+
+

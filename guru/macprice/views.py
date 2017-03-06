@@ -5,29 +5,24 @@ import logging
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponseBadRequest
 from django.utils.decorators import method_decorator
 from django.views import View
+from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
-from macprice.botmanager import FFPriceBot
-
-# Create your views here.
-botsDict = {
-    "309603787:AAHB6uOEc9aRuQfUoYrjW_we4zF8LJIu82g": FFPriceBot("309603787:AAHB6uOEc9aRuQfUoYrjW_we4zF8LJIu82g"),
-    # prodaction
-    "279023466:AAHmCU7BcKcrR32Sw97esrCfa7C0oDykz9M": FFPriceBot("279023466:AAHmCU7BcKcrR32Sw97esrCfa7C0oDykz9M"),
-    # development
-}
-
+from controllers.botmanager import FFPriceBot
+from controllers import stats as st
 
 class TelegramView(View):
+    bot = FFPriceBot()
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.log_info = logging.getLogger('django')
         self.log_error = logging.getLogger('django.request')
 
     def post(self, request, token):
-        if not (token in botsDict.keys()):
+        if not (token in self.bot.bots_dict):
             return HttpResponseForbidden('Invalid bot token')
-        activeBot = botsDict[token]
+        self.bot.set_bot(token)
 
         raw = request.body.decode('utf-8')
         try:
@@ -36,7 +31,7 @@ class TelegramView(View):
             return HttpResponseBadRequest('Invalid request body')
         else:
             try:
-                activeBot.process_request(payload)
+                self.bot.process_request(payload)
             except KeyError as e:
                 text = 'KeyError in body: %s' % str(e)
                 self.log_error.error(text)
@@ -49,3 +44,14 @@ class TelegramView(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super(TelegramView, self).dispatch(request, *args, **kwargs)
+
+
+class StatsView(View):
+    def get(self, request):
+        if not request.user.is_authenticated or not request.user.is_superuser:
+            return HttpResponseForbidden('Access denied')
+
+        last_login = request.user.last_login
+        users = st.getChats()
+
+        return render(request, 'macprice/index.html', {'last_login': last_login, 'users': users})
