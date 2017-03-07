@@ -8,8 +8,8 @@ from django.views import View
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
-from controllers.botmanager import FFPriceBot
-from controllers import stats as st
+from macprice.controllers.botmanager import FFPriceBot
+from macprice.controllers import stats as st
 
 class TelegramView(View):
     bot = FFPriceBot()

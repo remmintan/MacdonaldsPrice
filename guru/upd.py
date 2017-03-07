@@ -13,10 +13,7 @@ from updater.resturants import update_all
 
 update_all()
 
-if len(sys.argv) == 0:
-    commands = sys.argv
-else:
-    commands = input("What should I do?").split()
+commands = input("What should I do?").split()
 
 if "kfc" in commands:
     prior = {

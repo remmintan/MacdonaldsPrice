@@ -1,1 +1,14 @@
-
+appdirs==1.4.0
+beautifulsoup4==4.5.3
+bs4==0.0.1
+Django==1.10.5
+html5lib
+lxml==3.7.2
+packaging==16.8
+psycopg2==2.6.2
+pyparsing==2.1.10
+six==1.10.0
+telepot==10.4
+urllib3==1.20
+webencodings==0.5
+numpy
