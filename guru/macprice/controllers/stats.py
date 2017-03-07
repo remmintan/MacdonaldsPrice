@@ -1,11 +1,11 @@
 from macprice import models as db
 
 
-def getChats():
+def get_chats():
     chats = db.Chat.objects.filter(chatType='private').order_by('-lastRequest')
     users = []
 
-    getDate = lambda date: str(date) if date > 9 else "0" + str(date)
+    def get_date(date): str(date) if date > 9 else "0" + str(date)
 
     i = 0
 
@@ -14,8 +14,9 @@ def getChats():
         user = db.User.objects.get(pk=chat.id)
         name = "%s %s" % (user.name, user.surname)
         last = "%s %s %i %s:%s" % (
-        getDate(chat.lastRequest.day), getDate(chat.lastRequest.month), chat.lastRequest.year,
-        getDate(chat.lastRequest.hour), getDate(chat.lastRequest.minute))
+            get_date(chat.lastRequest.day), get_date(chat.lastRequest.month), chat.lastRequest.year,
+            get_date(chat.lastRequest.hour), get_date(chat.lastRequest.minute)
+        )
 
         users.append({
             'num': i,

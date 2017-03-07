@@ -13,14 +13,14 @@ import numpy
 from macprice.models import ProductGroup, Product, User, Resturant, Chat
 
 
-def createDictResturants():
+def create_dict_resturants():
     diction = {}
     for part in User.RESTURANT_CHOICES:
         diction[part[1]] = part[0]
     return diction
 
 
-class FFPriceBot:
+class BotManager:
     # Create your views here.
     bots_dict = {
         # prodaction
@@ -78,7 +78,7 @@ class FFPriceBot:
             u"Другие варианты заказа": self.repeat_order,
         }
 
-        self.__resturants = createDictResturants()
+        self.__resturants = create_dict_resturants()
 
     def set_bot(self, token):
         self.__bot = self.bots_dict[token]

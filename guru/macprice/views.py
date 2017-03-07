@@ -8,11 +8,11 @@ from django.views import View
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
-from macprice.controllers.botmanager import FFPriceBot
+from macprice.controllers.botmanager import BotManager
 from macprice.controllers import stats as st
 
 class TelegramView(View):
-    bot = FFPriceBot()
+    bot = BotManager()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -52,6 +52,6 @@ class StatsView(View):
             return HttpResponseForbidden('Access denied')
 
         last_login = request.user.last_login
-        users = st.getChats()
+        users = st.get_chats()
 
         return render(request, 'macprice/index.html', {'last_login': last_login, 'users': users})
