@@ -310,7 +310,7 @@ class BotManager:
             else:
                 order_counter += 1
 
-            order_text = u"*Ваш заказ. Вариант№%d:*\n" % order_counter
+            order_text = u"*Ваш заказ. Вариант №%d:*\n" % order_counter
             counter = 0
             price_sum = 0
             ccal_sum = 0
@@ -322,9 +322,10 @@ class BotManager:
                     ccal_sum += prod.ccal
                 name = prod.product_name
                 name += self.types[prod.product_type]
-                s = u"{0}){1}: {2}руб.{3}ккал.\n".format(counter, name, prod.price,
-                                                         prod.ccal) if self.__user.resturant == "mac" else u"{0}){1}: {2}руб.\n".format(
-                    counter, name, prod.price)
+                if self.__user.resturant == "mac":
+                    s = u"{0}) {1}: {2}руб. {3}ккал.\n".format(counter, name, prod.price, prod.ccal)
+                else:
+                    s = u"{0}) {1}: {2}руб.\n".format(counter, name, prod.price)
                 order_text += s
             if self.__user.resturant == "mac":
                 order_text += u"*Калорийность: %i ккал.*\n" % ccal_sum
@@ -335,6 +336,8 @@ class BotManager:
         response_text += u"Приятного аппетита!\nПри необходимости вы можете купить соусы на остаток денег."
         return response_text
 
+        # TODO Edit verifications with "mac"
+        # TODO Change "resturantt"  to "resturant"
 
 class Order:
     def __init__(self, summ, resturant, orderType=2):
@@ -422,7 +425,7 @@ class Order:
             self.sis.append(ordType)
             return prod
 
-            # rewrite this shit!
+            # TODO rewrite this shit!
 
     def getNewGroup(self, groups, rnd=-1, deepness=0):
         if rnd >= len(groups):
