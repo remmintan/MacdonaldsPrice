@@ -318,17 +318,17 @@ class BotManager:
             for prod in order.products:
                 counter += 1
                 price_sum += prod.price
-                if self.__user.resturant == "mac":
-                    ccal_sum += prod.ccal
+                ccal_sum += prod.ccal
                 name = prod.product_name
                 name += self.types[prod.product_type]
-                if self.__user.resturant == "mac":
+                if prod.ccal != 0:
                     s = u"{0}) {1}: {2}руб. {3}ккал.\n".format(counter, name, prod.price, prod.ccal)
                 else:
                     s = u"{0}) {1}: {2}руб.\n".format(counter, name, prod.price)
                 order_text += s
-            if self.__user.resturant == "mac":
-                order_text += u"*Калорийность: %i ккал.*\n" % ccal_sum
+            order_text += u"*Калорийность: {0}.*\n".format(str(ccal_sum) + " ккал" if ccal_sum != 0 else "не задано "
+                                                                                                         "для данного"
+                                                                                                         " заведения")
             order_text += u"*Итого: %i руб.*" % price_sum
             response_text += order_text + "\n\n"
             prod_check_array.append(order.products)
@@ -336,7 +336,6 @@ class BotManager:
         response_text += u"Приятного аппетита!\nПри необходимости вы можете купить соусы на остаток денег."
         return response_text
 
-        # TODO Edit verifications with "mac"
 
 class Order:
     def __init__(self, summ, resturant, orderType=2):
