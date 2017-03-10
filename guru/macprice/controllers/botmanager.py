@@ -233,7 +233,7 @@ class BotManager:
         text = self.__msg['text']
 
         if text in self.__resturants.keys():
-            self.__user.resturantt = self.__resturants[text]
+            self.__user.resturant = self.__resturants[text]
             self.__user.haveChosen = True
             self.__user.save()
             self.start2()
@@ -337,7 +337,6 @@ class BotManager:
         return response_text
 
         # TODO Edit verifications with "mac"
-        # TODO Change "resturantt"  to "resturant"
 
 class Order:
     def __init__(self, summ, resturant, orderType=2):
