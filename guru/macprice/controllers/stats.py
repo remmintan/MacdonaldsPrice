@@ -5,7 +5,7 @@ def get_chats():
     chats = db.Chat.objects.filter(chatType='private').order_by('-lastRequest')
     users = []
 
-    def get_date(date): str(date) if date > 9 else "0" + str(date)
+    def get_date(date): return str(date) if date > 9 else "0" + str(date)
 
     i = 0
 
